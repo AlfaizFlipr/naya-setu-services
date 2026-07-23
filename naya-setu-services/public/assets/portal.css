@@ -1,0 +1,1034 @@
+html:has(body.nss-fullpage),
+body.nss-fullpage {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #f7f5f3 !important;
+}
+body.nss-fullpage > * {
+  margin: 0 !important;
+}
+.nss-app {
+  width: 100%;
+  --nss-red: #bb0b0b;
+  --nss-red-dark: #8f0808;
+  --nss-red-tint: #fdecec;
+  --nss-dark: #14171c;
+  --nss-gray: #6b7280;
+  --nss-gray-light: #9aa2af;
+  --nss-line: #e8e5e3;
+  --nss-bg: #f7f5f3;
+  --nss-green: #16a34a;
+  --nss-amber: #b45309;
+  --nss-shadow-sm: 0 1px 2px rgba(20, 23, 28, 0.06);
+  --nss-shadow-md: 0 6px 20px rgba(20, 23, 28, 0.08);
+  --nss-shadow-lg: 0 16px 40px rgba(20, 23, 28, 0.14);
+  font-family:
+    "Poppins",
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: var(--nss-dark);
+  background: var(--nss-bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+/*
+ * The active WordPress theme (e.g. a block theme like Twenty Twenty-Five)
+ * injects its own global font-size/line-height/letter-spacing straight onto
+ * <body> via wp_head(). Our full-page template still shares that <body>, so
+ * every element in here must inherit from .nss-app rather than the theme —
+ * otherwise text without an explicit font-size renders at the theme's (much
+ * larger) size/line-height, throwing spacing off throughout the app
+ * regardless of which theme happens to be active.
+ */
+.nss-app * {
+  box-sizing: border-box;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+.nss-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  vertical-align: -3px;
+}
+.nss-icon-lg {
+  width: 22px;
+  height: 22px;
+  vertical-align: -5px;
+}
+.nss-icon-sm {
+  width: 13px;
+  height: 13px;
+  vertical-align: -2px;
+}
+.nss-app h1,
+.nss-app h2,
+.nss-app h3,
+.nss-app h4 {
+  font-family: inherit;
+  margin: 0;
+}
+.nss-app a {
+  color: var(--nss-red);
+}
+.nss-app a.nss-btn {
+  color: var(--nss-dark);
+}
+.nss-app a.nss-btn-primary {
+  color: #fff;
+}
+
+/* ---------- Shell layout ---------- */
+.nss-shell {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 100vh;
+}
+.nss-sidebar {
+  background: var(--nss-dark);
+  color: #fff;
+  padding: 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+.nss-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 20px;
+}
+.nss-brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex: none;
+}
+.nss-brand-name {
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.2;
+}
+.nss-brand-name small {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  color: #9aa2af;
+}
+.nss-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+.nss-nav-group-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  font-weight: 700;
+  margin: 14px 12px 6px;
+}
+.nss-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #cfd3d9;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.nss-nav a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.nss-nav a.active {
+  background: var(--nss-red);
+  color: #fff;
+  font-weight: 600;
+}
+
+.nss-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.nss-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 26px;
+  background: #fff;
+  border-bottom: 1px solid var(--nss-line);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.nss-topbar-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.nss-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.nss-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--nss-gray);
+}
+.nss-user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--nss-dark);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+.nss-content {
+  padding: 24px 26px 60px;
+  flex: 1;
+}
+.nss-menu-toggle {
+  display: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--nss-dark);
+  padding: 6px;
+}
+.nss-menu-toggle .nss-icon {
+  width: 20px;
+  height: 20px;
+}
+.nss-sidebar-overlay {
+  display: none;
+}
+@media (max-width: 960px) {
+  .nss-sidebar-overlay.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 23, 28, 0.45);
+    z-index: 90;
+  }
+}
+
+@media (max-width: 960px) {
+  .nss-shell {
+    grid-template-columns: 1fr;
+  }
+  .nss-sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    bottom: 0;
+    width: 240px;
+    z-index: 100;
+    transition: left 0.2s ease;
+  }
+  .nss-sidebar.open {
+    left: 0;
+  }
+  .nss-menu-toggle {
+    display: inline-flex !important;
+  }
+}
+
+/* ---------- Buttons ---------- */
+.nss-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  border: 1px solid var(--nss-line);
+  background: #fff;
+  color: var(--nss-dark);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.nss-btn:hover {
+  background: var(--nss-bg);
+}
+.nss-btn-primary {
+  background: var(--nss-red);
+  border-color: var(--nss-red);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(187, 11, 11, 0.28);
+}
+.nss-btn-primary:hover {
+  background: var(--nss-red-dark);
+  border-color: var(--nss-red-dark);
+  color: #fff;
+}
+.nss-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.nss-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.nss-btn-ghost:hover {
+  background: var(--nss-bg);
+}
+.nss-btn-sm {
+  padding: 7px 12px;
+  font-size: 12.5px;
+  border-radius: 8px;
+}
+.nss-btn-danger {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+.nss-btn-danger:hover {
+  background: #fef2f2;
+}
+.nss-btn-block {
+  width: 100%;
+}
+
+/* ---------- Cards / panels / stats ---------- */
+.nss-card {
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  border-radius: 16px;
+  box-shadow: var(--nss-shadow-md);
+}
+.nss-panel {
+  padding: 22px;
+}
+.nss-panel h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.nss-panel-sub {
+  color: var(--nss-gray);
+  font-size: 12.5px;
+  margin: 0 0 18px;
+}
+.nss-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.nss-stat {
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: var(--nss-shadow-sm);
+  border-left: 4px solid var(--nss-red);
+}
+.nss-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nss-gray);
+  font-weight: 700;
+}
+.nss-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+@media (max-width: 960px) {
+  .nss-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ---------- Category / service grid ---------- */
+.nss-cat-grid,
+.nss-svc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.nss-cat-card,
+.nss-svc-card {
+  background: #fff;
+  border: 1.5px solid var(--nss-line);
+  border-radius: 16px;
+  padding: 24px 18px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 160px;
+}
+.nss-cat-card:hover,
+.nss-svc-card:hover {
+  border-color: var(--nss-red);
+  transform: translateY(-3px);
+  box-shadow: var(--nss-shadow-md);
+}
+.nss-cat-card:active,
+.nss-svc-card:active {
+  transform: translateY(-1px);
+}
+.nss-cat-card .nss-card-arrow,
+.nss-svc-card .nss-card-arrow {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  color: var(--nss-gray-light);
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: all 0.18s ease;
+}
+.nss-cat-card:hover .nss-card-arrow,
+.nss-svc-card:hover .nss-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--nss-red);
+}
+.nss-icon-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  transition: all 0.18s ease;
+}
+.nss-cat-card:hover .nss-icon-badge,
+.nss-svc-card:hover .nss-icon-badge {
+  background: var(--nss-red);
+  color: #fff;
+}
+.nss-icon-badge svg {
+  width: 24px;
+  height: 24px;
+}
+.nss-cat-card .nss-cat-name,
+.nss-svc-card .nss-svc-name {
+  font-weight: 700;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+.nss-cat-card .nss-cat-count {
+  font-size: 11.5px;
+  color: var(--nss-gray);
+  margin-top: 5px;
+}
+.nss-svc-card .nss-svc-fee {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--nss-gray);
+  background: var(--nss-bg);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-top: 10px;
+}
+.nss-svc-card .nss-svc-fee.free {
+  color: var(--nss-green);
+  background: #ecfdf5;
+}
+.nss-svc-card.is-hidden {
+  display: none;
+}
+
+/* ---------- Global service search ---------- */
+.nss-search-wrap {
+  position: relative;
+  margin-bottom: 22px;
+  max-width: 480px;
+}
+.nss-search-wrap .nss-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nss-gray-light);
+}
+.nss-search-input {
+  width: 100%;
+  border: 1.5px solid var(--nss-line);
+  border-radius: 12px;
+  padding: 12px 14px 12px 40px;
+  font-size: 13.5px;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.nss-search-input:focus {
+  outline: none;
+  border-color: var(--nss-red);
+  box-shadow: 0 0 0 3px rgba(187, 11, 11, 0.12);
+}
+.nss-search-results-label {
+  font-size: 12.5px;
+  color: var(--nss-gray);
+  margin-bottom: 12px;
+}
+.nss-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--nss-gray);
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.nss-breadcrumb a {
+  color: var(--nss-gray);
+  text-decoration: none;
+  font-weight: 600;
+}
+.nss-breadcrumb a:hover {
+  color: var(--nss-red);
+}
+.nss-breadcrumb .sep {
+  color: var(--nss-gray-light);
+}
+.nss-breadcrumb .current {
+  color: var(--nss-dark);
+  font-weight: 700;
+}
+
+/* ---------- Wizard / stepper ---------- */
+.nss-wizard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.nss-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.nss-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nss-gray-light);
+}
+.nss-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--nss-line);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex: none;
+}
+.nss-step.done .nss-step-num {
+  background: var(--nss-green);
+}
+.nss-step.active {
+  color: var(--nss-dark);
+}
+.nss-step.active .nss-step-num {
+  background: var(--nss-red);
+}
+.nss-step-sep {
+  width: 16px;
+  height: 1px;
+  background: var(--nss-line);
+}
+
+/* ---------- Forms ---------- */
+.nss-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 20px;
+}
+.nss-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nss-field.span-2 {
+  grid-column: span 2;
+}
+.nss-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--nss-gray);
+}
+.nss-field label .req {
+  color: var(--nss-red);
+}
+.nss-input,
+.nss-select,
+textarea.nss-input {
+  border: 1px solid var(--nss-line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--nss-dark);
+  width: 100%;
+  background: #fff;
+  font-family: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.nss-input:focus,
+.nss-select:focus {
+  outline: none;
+  border-color: var(--nss-red);
+  box-shadow: 0 0 0 3px rgba(187, 11, 11, 0.12);
+}
+.nss-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--nss-dark);
+}
+.nss-checkbox input {
+  accent-color: var(--nss-red);
+  width: 16px;
+  height: 16px;
+}
+.nss-help {
+  font-size: 11.5px;
+  color: var(--nss-gray-light);
+  margin-top: 3px;
+}
+.nss-error-text {
+  color: #b91c1c;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.nss-field-hint {
+  font-size: 11.5px;
+  color: var(--nss-gray-light);
+}
+
+/* ---------- Common-details (auto-fill) summary block ---------- */
+.nss-autofill-box {
+  background: var(--nss-red-tint);
+  border: 1px solid #f6cccc;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+.nss-autofill-box h3 {
+  font-size: 13px;
+  color: var(--nss-red-dark);
+  margin-bottom: 10px;
+}
+.nss-autofill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px 16px;
+  font-size: 12.5px;
+}
+.nss-autofill-grid div span {
+  display: block;
+  color: var(--nss-gray);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.nss-autofill-incomplete {
+  color: var(--nss-amber);
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* ---------- Document vault ---------- */
+.nss-doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.nss-doc-card {
+  border: 1.5px dashed var(--nss-line);
+  border-radius: 12px;
+  padding: 16px 14px;
+  font-size: 12.5px;
+  text-align: center;
+  background: var(--nss-bg);
+  transition: border-color 0.15s ease;
+}
+.nss-doc-card:hover {
+  border-color: var(--nss-gray-light);
+}
+.nss-doc-card.have {
+  border-style: solid;
+  border-color: var(--nss-green);
+  background: #f0fdf4;
+}
+.nss-doc-card .nss-doc-icon {
+  color: var(--nss-gray-light);
+  margin-bottom: 6px;
+}
+.nss-doc-card.have .nss-doc-icon {
+  color: var(--nss-green);
+}
+.nss-doc-card .nss-doc-type {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.nss-doc-card input[type="file"] {
+  font-size: 11px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* ---------- Empty states ---------- */
+.nss-empty-state {
+  text-align: center;
+  color: var(--nss-gray);
+  padding: 50px 20px;
+  font-size: 13px;
+}
+.nss-empty-state .nss-icon {
+  width: 34px;
+  height: 34px;
+  color: var(--nss-gray-light);
+  margin-bottom: 12px;
+}
+.nss-empty-state strong {
+  display: block;
+  color: var(--nss-dark);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+/* ---------- Loading spinner ---------- */
+.nss-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--nss-line);
+  border-top-color: var(--nss-red);
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  animation: nss-spin 0.7s linear infinite;
+}
+@keyframes nss-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Status badges / timeline ---------- */
+.nss-status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.nss-status-draft {
+  background: #f1f5f9;
+  color: #475569;
+}
+.nss-status-submitted {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.nss-status-in_progress {
+  background: #fffbeb;
+  color: #b45309;
+}
+.nss-status-pending_user {
+  background: #fef3c7;
+  color: #92400e;
+}
+.nss-status-completed {
+  background: #ecfdf5;
+  color: #15803d;
+}
+.nss-status-rejected {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.nss-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nss-timeline li {
+  display: flex;
+  gap: 12px;
+  padding: 0 0 18px;
+  position: relative;
+}
+.nss-timeline li:before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--nss-red);
+  margin-top: 4px;
+  flex: none;
+}
+.nss-timeline li:not(:last-child):after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  bottom: 0;
+  width: 1px;
+  background: var(--nss-line);
+}
+.nss-timeline .t-status {
+  font-weight: 700;
+  font-size: 13px;
+}
+.nss-timeline .t-meta {
+  font-size: 11.5px;
+  color: var(--nss-gray);
+}
+
+/* ---------- Tables ---------- */
+.nss-tablewrap {
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  border-radius: 14px;
+  overflow: auto;
+  box-shadow: var(--nss-shadow-sm);
+}
+.nss-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.nss-table thead th {
+  background: var(--nss-bg);
+  text-align: left;
+  padding: 11px 14px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nss-gray);
+  white-space: nowrap;
+}
+.nss-table tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--nss-line);
+  vertical-align: middle;
+}
+.nss-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.nss-table tbody tr:hover {
+  background: #fbfafa;
+}
+.nss-empty {
+  text-align: center;
+  color: var(--nss-gray);
+  padding: 40px;
+  font-size: 13px;
+}
+
+/* ---------- Tabs (Settings / Reports) ---------- */
+.nss-settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--nss-line);
+  flex-wrap: wrap;
+}
+.nss-tab-btn {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nss-gray);
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+}
+.nss-tab-btn.active,
+.nss-tab-btn:hover {
+  color: var(--nss-red);
+  border-color: var(--nss-red);
+}
+
+.nss-two-col {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .nss-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nss-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--nss-bg);
+  color: var(--nss-gray);
+}
+.nss-badge-on {
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+/* ---------- Toast ---------- */
+#nss-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.nss-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--nss-dark, #14171c);
+  color: #fff;
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: var(--nss-shadow-lg);
+  animation: nss-toast-in 0.25s ease;
+}
+.nss-toast.nss-toast-out {
+  animation: nss-toast-out 0.2s ease forwards;
+}
+.nss-toast .nss-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.nss-toast-ok {
+  background: var(--nss-green, #16a34a);
+}
+.nss-toast-err {
+  background: #dc2626;
+}
+@keyframes nss-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes nss-toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+}
+
+.nss-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--nss-gray);
+  font-size: 13px;
+}
+.nss-loading .nss-spinner {
+  margin-bottom: 16px;
+}
+
+/* ---------- Auth screen (shared shell with auth.css) ---------- */
+.nss-auth-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+}
+.nss-auth-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: var(--nss-shadow-lg);
+  padding: 30px 28px;
+  width: 100%;
+}
+.nss-auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.nss-auth-tabs {
+  display: flex;
+  background: var(--nss-bg);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+.nss-auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nss-gray);
+  cursor: pointer;
+}
+.nss-auth-tab.active {
+  background: #fff;
+  color: var(--nss-red);
+  box-shadow: var(--nss-shadow-sm);
+}

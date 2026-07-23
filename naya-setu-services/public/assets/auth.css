@@ -1,0 +1,143 @@
+/* Naya Setu Services — auth screen (Login / Sign Up) additions on top of portal.css */
+
+.nss-auth-card {
+  max-width: 460px;
+}
+
+.nss-auth-notice {
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.nss-auth-notice-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.nss-auth-notice-info {
+  background: var(--nss-red-tint);
+  color: var(--nss-red-dark);
+}
+
+.nss-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 480px) {
+  .nss-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+.nss-auth-form .nss-form-grid-2 .nss-field {
+  margin-bottom: 0;
+}
+
+/* Password / OTP sub-toggle inside the Login form */
+.nss-auth-pill-toggle {
+  display: flex;
+  background: var(--nss-bg);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.nss-auth-pill {
+  flex: 1;
+  text-align: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--nss-gray);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.nss-auth-pill.active {
+  background: var(--nss-red);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(187, 11, 11, 0.28);
+}
+
+.nss-auth-link {
+  color: var(--nss-red);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.nss-auth-link:hover {
+  text-decoration: underline;
+}
+
+.nss-auth-msg {
+  font-size: 12.5px;
+  margin: 8px 0;
+  min-height: 1px;
+}
+.nss-auth-msg.err {
+  color: #b91c1c;
+}
+.nss-auth-msg.ok {
+  color: #15803d;
+}
+
+/* Send OTP — lighter tint step, keeps the brand red family */
+.nss-btn-otp {
+  background: linear-gradient(135deg, var(--nss-red-dark), var(--nss-dark));
+  border-color: var(--nss-dark);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(20, 23, 28, 0.28);
+  margin-top: 4px;
+}
+.nss-btn-otp:hover {
+  background: linear-gradient(135deg, var(--nss-red-dark), var(--nss-dark));
+  filter: brightness(1.1);
+  color: #fff;
+}
+.nss-btn-otp:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Final Login / Sign Up submit — brand red, same as every other primary CTA in the app */
+.nss-btn-go {
+  background: var(--nss-red);
+  border-color: var(--nss-red);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(187, 11, 11, 0.28);
+  margin-top: 6px;
+}
+.nss-btn-go:hover {
+  background: var(--nss-red-dark);
+  border-color: var(--nss-red-dark);
+  color: #fff;
+}
+.nss-btn-go:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.nss-btn-linklike {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--nss-gray);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 12px;
+  padding: 6px;
+  font-family: inherit;
+}
+.nss-btn-linklike:hover {
+  color: var(--nss-red);
+}
+
+#nss-login-recaptcha,
+#nss-reg-recaptcha {
+  margin-bottom: 10px;
+}
