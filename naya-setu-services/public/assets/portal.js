@@ -323,7 +323,6 @@ document.getElementById("nss-new-request-btn").addEventListener("click", functio
 
 // --------------------------------------------------------------- dashboard / catalog
 function serviceCardHtml(svc, iconName) {
-  var fee = svc.payment_required ? money(svc.amount) : "Free";
   return (
     '<div class="nss-svc-card" data-key="' +
     esc(svc.service_key) +
@@ -338,11 +337,6 @@ function serviceCardHtml(svc, iconName) {
     "</div>" +
     '<div class="nss-svc-name">' +
     esc(svc.service_label) +
-    "</div>" +
-    '<div class="nss-svc-fee' +
-    (svc.payment_required ? "" : " free") +
-    '">' +
-    fee +
     "</div>" +
     "</div>"
   );
@@ -359,6 +353,27 @@ function bindServiceCardClicks(root) {
     });
   });
 }
+
+var CATEGORY_DESCRIPTIONS = {
+  identity: "Aadhaar, PAN, Passport, Voter ID, DL & ABHA",
+  business: "GST, Company/MSME registration, FSSAI, Trademark",
+  banking: "Loans, insurance, CKYC, account verification",
+  transport: "RC transfer, permits, fitness, challan payment",
+  legal: "Agreements, e-Stamp, property, notary",
+  courier: "Domestic, international & bulk shipments",
+  schemes: "Ayushman, PM Kisan, certificates, ration card",
+  digital: "DigiLocker, eSign, OCR, document vault",
+};
+var POPULAR_SERVICE_KEYS = [
+  "pan_new",
+  "gst_registration",
+  "passport_fresh",
+  "aadhaar_update",
+  "dl_renewal",
+  "ration_card",
+  "income_certificate",
+  "courier_new_shipment",
+];
 
 function renderDashboard() {
   setTitle("Dashboard");
@@ -379,6 +394,9 @@ function renderDashboard() {
             '<div class="nss-cat-name">' +
             esc(cat.label) +
             "</div>" +
+            '<div class="nss-cat-desc">' +
+            esc(CATEGORY_DESCRIPTIONS[cat.key] || "") +
+            "</div>" +
             '<div class="nss-cat-count">' +
             cat.services.length +
             " services</div>" +
@@ -386,6 +404,25 @@ function renderDashboard() {
           );
         })
         .join("");
+
+      var popular = [];
+      res.categories.forEach(function (cat) {
+        cat.services.forEach(function (svc) {
+          if (POPULAR_SERVICE_KEYS.indexOf(svc.service_key) !== -1) {
+            popular.push({ svc: svc, cat: cat });
+          }
+        });
+      });
+      popular.sort(function (a, b) {
+        return POPULAR_SERVICE_KEYS.indexOf(a.svc.service_key) - POPULAR_SERVICE_KEYS.indexOf(b.svc.service_key);
+      });
+      var popularHtml = popular.length
+        ? '<div class="nss-section-heading">Popular Services</div>' +
+          '<div class="nss-svc-grid">' +
+          popular.map(function (m) { return serviceCardHtml(m.svc, m.cat.icon); }).join("") +
+          "</div>"
+        : "";
+
       content.innerHTML =
         '<div class="nss-search-wrap">' +
         icon("search") +
@@ -394,7 +431,8 @@ function renderDashboard() {
         ' services — e.g. PAN, Passport, GST…" autocomplete="off"/>' +
         "</div>" +
         '<div id="nss-dashboard-body">' +
-        '<div class="nss-panel-sub">Pick a category to see every service available under it. Courier opens the dedicated Courier dashboard.</div>' +
+        popularHtml +
+        '<div class="nss-section-heading">Browse By Category</div>' +
         '<div class="nss-cat-grid">' +
         cards +
         "</div>" +
@@ -404,6 +442,7 @@ function renderDashboard() {
           location.hash = "category/" + encodeURIComponent(el.dataset.key);
         });
       });
+      bindServiceCardClicks(content);
 
       var searchInput = document.getElementById("nss-service-search");
       var bodyEl = document.getElementById("nss-dashboard-body");
@@ -417,6 +456,7 @@ function renderDashboard() {
               location.hash = "category/" + encodeURIComponent(el.dataset.key);
             });
           });
+          bindServiceCardClicks(bodyEl);
           return;
         }
         var matches = [];
@@ -562,17 +602,71 @@ function fieldInputHtml(field, value) {
   return html;
 }
 
-function renderProfileGate(app) {
-  STATE.returnToApplication = app.id;
+function profileFieldRow(label, name, value, type) {
+  return (
+    '<div class="nss-field"><label>' +
+    label +
+    '</label><input class="nss-input" type="' +
+    (type || "text") +
+    '" name="' +
+    name +
+    '" value="' +
+    esc(value || "") +
+    '"/></div>'
+  );
+}
+function profileFieldsHtml(p) {
+  return (
+    profileFieldRow("Name", "name", p.name) +
+    profileFieldRow("Mobile", "mobile", p.mobile) +
+    profileFieldRow("Email", "email", p.email, "email") +
+    profileFieldRow("Father's Name", "father_name", p.father_name) +
+    profileFieldRow("Mother's Name", "mother_name", p.mother_name) +
+    profileFieldRow("Date Of Birth", "dob", p.dob, "date") +
+    profileFieldRow("Gender", "gender", p.gender) +
+    profileFieldRow("Address Line 1", "address1", p.address1) +
+    profileFieldRow("Address Line 2", "address2", p.address2) +
+    profileFieldRow("District", "district", p.district) +
+    profileFieldRow("State", "state", p.state) +
+    profileFieldRow("Pincode", "pincode", p.pincode) +
+    profileFieldRow("Aadhaar Number", "aadhaar_no", p.aadhaar_no) +
+    profileFieldRow("Samagra ID", "samagra_id", p.samagra_id) +
+    profileFieldRow("PAN Number", "pan_no", p.pan_no)
+  );
+}
+function wireProfileForm(formEl, onSaved) {
+  formEl.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = formEl.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    api("/profile", "POST", formToObject(formEl))
+      .then(function (res) {
+        toast("Profile saved.", "ok");
+        STATE.profile = res.profile;
+        onSaved(res.profile);
+      })
+      .catch(function (e2) {
+        toast(e2.message, "err");
+        btn.disabled = false;
+      });
+  });
+}
+
+function renderProfileGate(app, profile) {
   content.innerHTML =
-    '<div class="nss-card nss-panel" style="max-width:520px;">' +
-    emptyState(
-      "user",
-      "Complete your profile first",
-      "Your name, mobile, address and pincode are required before any service can be filled in — every form auto-fills from here instead of asking again.",
-    ) +
-    '<a href="#profile" class="nss-btn nss-btn-primary nss-btn-block">Complete Profile Now</a>' +
-    "</div>";
+    '<div class="nss-breadcrumb"><a href="#dashboard">Dashboard</a><span class="sep">/</span><span class="current">Complete Your Profile</span></div>' +
+    '<form id="nss-profile-gate-form" class="nss-card nss-panel">' +
+    '<h2>Complete Your Profile First</h2>' +
+    '<p class="nss-panel-sub">Name, mobile, address and pincode are required — fill them in once here and every service form auto-fills from this instead of asking again.</p>' +
+    '<div class="nss-form-grid">' +
+    profileFieldsHtml(profile) +
+    "</div>" +
+    '<button class="nss-btn nss-btn-primary" type="submit" style="margin-top:20px;">Save &amp; Continue</button>' +
+    "</form>";
+
+  wireProfileForm(document.getElementById("nss-profile-gate-form"), function () {
+    renderApplicationDetail(app.id);
+  });
 }
 
 function renderFormEditor(app, config, statusLog) {
@@ -580,7 +674,7 @@ function renderFormEditor(app, config, statusLog) {
     .then(function (results) {
       var profile = results[0];
       if (!profile.complete) {
-        renderProfileGate(app);
+        renderProfileGate(app, profile);
         return;
       }
       var docsByType = {};
@@ -675,28 +769,21 @@ function renderFormEditor(app, config, statusLog) {
         '<form id="nss-service-form" class="nss-card nss-panel">' +
         "<h2>" +
         esc(config.service_label) +
-        " Details</h2>" +
-        '<div class="nss-panel-sub">' +
-        (config.payment_required
-          ? "Service fee: " + money(config.amount)
-          : "This service is free.") +
-        "</div>" +
-        '<div class="nss-form-grid">' +
-        (fieldsHtml ||
-          '<p class="nss-help">No additional details are needed for this service.</p>') +
-        "</div>" +
-        (docsHtml
-          ? '<h3 style="margin:22px 0 12px;font-size:13px;">Required Documents</h3><div class="nss-doc-grid">' +
-            docsHtml +
-            "</div>"
+        "</h2>" +
+        (fieldsHtml
+          ? '<div class="nss-section-heading" style="margin-top:18px;">Service Details</div><div class="nss-form-grid">' + fieldsHtml + "</div>"
           : "") +
+        (docsHtml
+          ? '<div class="nss-section-heading">Required Documents</div><div class="nss-doc-grid">' + docsHtml + "</div>"
+          : "") +
+        '<div class="nss-section-heading">Comment</div>' +
+        '<textarea class="nss-input" name="comment" rows="3" placeholder="Enter comment (optional)">' + esc(app.form_data.comment || "") + "</textarea>" +
+        (config.payment_required ? '<div id="nss-payment-summary" style="margin-top:24px;"></div>' : "") +
         '<div style="display:flex;gap:10px;margin-top:20px;">' +
         '<button type="button" class="nss-btn" id="nss-save-draft">Save Draft</button>' +
-        '<button type="submit" class="nss-btn nss-btn-primary" id="nss-submit-app">' +
         (config.payment_required
-          ? "Continue to Payment"
-          : "Submit Application") +
-        "</button>" +
+          ? ""
+          : '<button type="submit" class="nss-btn nss-btn-primary" id="nss-submit-app">Submit Application</button>') +
         "</div>" +
         "</form>";
 
@@ -762,32 +849,44 @@ function renderFormEditor(app, config, statusLog) {
             });
         });
 
-      document
-        .getElementById("nss-service-form")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          var btn = document.getElementById("nss-submit-app");
-          btn.disabled = true;
-          saveDraft()
-            .then(function () {
+      if (config.payment_required) {
+        renderPaymentSummary(app, config, {
+          beforePay: function () {
+            return saveDraft().then(function () {
               return api("/applications/" + app.id + "/submit", "POST");
-            })
-            .then(function (res) {
-              toast(
-                res.application.application_no
-                  ? "Submitted — " + res.application.application_no
-                  : "Submitted.",
-                "ok",
-              );
-              location.hash = "application/" + app.id;
-            })
-            .catch(function (e2) {
-              toast(e2.message, "err");
-            })
-            .finally(function () {
-              btn.disabled = false;
+            }).then(function (res) {
+              return res.application;
             });
+          },
         });
+      } else {
+        document
+          .getElementById("nss-service-form")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            var btn = document.getElementById("nss-submit-app");
+            btn.disabled = true;
+            saveDraft()
+              .then(function () {
+                return api("/applications/" + app.id + "/submit", "POST");
+              })
+              .then(function (res) {
+                toast(
+                  res.application.application_no
+                    ? "Submitted — " + res.application.application_no
+                    : "Submitted.",
+                  "ok",
+                );
+                location.hash = "application/" + app.id;
+              })
+              .catch(function (e2) {
+                toast(e2.message, "err");
+              })
+              .finally(function () {
+                btn.disabled = false;
+              });
+          });
+      }
     })
     .catch(function (e) {
       content.innerHTML = errorBox(e);
@@ -856,10 +955,16 @@ function renderApplicationReadonly(app, config, statusLog) {
   }
 }
 
-function renderPaymentSummary(app, config) {
+/**
+ * options.beforePay, if given, runs first (e.g. save the draft's field/document
+ * changes and submit it, which validates required fields/documents) — used
+ * when this summary is embedded directly in the still-draft form editor.
+ * Resolves to the up-to-date application row to pay against.
+ */
+function renderPaymentSummary(app, config, options) {
+  options = options || {};
   var box = document.getElementById("nss-payment-summary");
-  Promise.all([api("/wallet").catch(function () { return { balance: 0, available: false }; })]).then(function (results) {
-    var wallet = results[0];
+  api("/wallet").catch(function () { return { balance: 0, available: false }; }).then(function (wallet) {
     var fee = parseFloat(config.amount) || 0;
     var discount = parseFloat(app.discount_amount) || 0;
     var total = Math.max(0, fee - discount);
@@ -873,20 +978,19 @@ function renderPaymentSummary(app, config) {
       '<div style="display:flex;gap:8px;">' +
       '<input class="nss-input" type="text" id="nss-coupon-code" placeholder="Enter coupon code" value="' + esc(app.coupon_code || "") + '"' + (app.coupon_code ? " disabled" : "") + '/>' +
       (app.coupon_code
-        ? '<button class="nss-btn nss-btn-sm nss-btn-danger" id="nss-coupon-remove">Remove</button>'
-        : '<button class="nss-btn nss-btn-sm" id="nss-coupon-apply">Apply</button>') +
+        ? '<button type="button" class="nss-btn nss-btn-sm nss-btn-danger" id="nss-coupon-remove">Remove</button>'
+        : '<button type="button" class="nss-btn nss-btn-sm" id="nss-coupon-apply">Apply</button>') +
       "</div></div>" +
       '<div class="nss-payment-row"><span>Service Fee</span><strong>' + money(fee) + "</strong></div>" +
       '<div class="nss-payment-row"><span>Offer Discount</span><strong' + (discount > 0 ? ' class="nss-discount"' : "") + ">−" + money(discount) + "</strong></div>" +
       '<div class="nss-payment-row nss-payment-total"><span>Total Amount Pay</span><strong>' + money(total) + "</strong></div>" +
-      '<div class="nss-wallet-box">' +
-      "<span>Wallet Amount</span>" +
-      '<strong>' + money(wallet.balance || 0) + "</strong>" +
-      "</div>" +
-      '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">' +
-      '<button class="nss-btn nss-btn-primary" id="nss-pay-razorpay">' + icon("credit-card", "nss-icon-sm") + " Pay " + money(total) + "</button>" +
       (wallet.available
-        ? '<button class="nss-btn' + (canPayWallet ? "" : " nss-btn-danger") + '" id="nss-pay-wallet"' + (canPayWallet ? "" : " disabled") + ">" + icon("wallet", "nss-icon-sm") + " Pay From Wallet</button>"
+        ? '<div class="nss-wallet-box"><span>Wallet Amount</span><strong>' + money(wallet.balance || 0) + "</strong></div>"
+        : "") +
+      '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">' +
+      '<button type="button" class="nss-btn nss-btn-primary" id="nss-pay-razorpay">' + icon("credit-card", "nss-icon-sm") + " Pay " + money(total) + "</button>" +
+      (wallet.available
+        ? '<button type="button" class="nss-btn' + (canPayWallet ? "" : " nss-btn-danger") + '" id="nss-pay-wallet"' + (canPayWallet ? "" : " disabled") + ">" + icon("wallet", "nss-icon-sm") + " Pay From Wallet</button>"
         : "") +
       "</div>" +
       (wallet.available && !canPayWallet ? '<div class="nss-field-hint" style="margin-top:8px;">Wallet balance is not enough to cover this total.</div>' : "") +
@@ -902,7 +1006,7 @@ function renderPaymentSummary(app, config) {
         api("/applications/" + app.id + "/apply-coupon", "POST", { code: code })
           .then(function (res) {
             toast("Coupon applied.", "ok");
-            renderPaymentSummary(res.application, config);
+            renderPaymentSummary(res.application, config, options);
           })
           .catch(function (e) {
             toast(e.message, "err");
@@ -916,36 +1020,54 @@ function renderPaymentSummary(app, config) {
         api("/applications/" + app.id + "/remove-coupon", "POST")
           .then(function (res) {
             toast("Coupon removed.", "ok");
-            renderPaymentSummary(res.application, config);
+            renderPaymentSummary(res.application, config, options);
           })
           .catch(function (e) { toast(e.message, "err"); });
       });
     }
 
-    document.getElementById("nss-pay-razorpay").addEventListener("click", function () {
-      payNow(app.id);
+    function ensureReadyThenPay(payFn) {
+      if (options.beforePay) {
+        return options
+          .beforePay()
+          .then(function (freshApp) {
+            return payFn(freshApp || app);
+          });
+      }
+      return payFn(app);
+    }
+
+    document.getElementById("nss-pay-razorpay").addEventListener("click", function (e) {
+      var btn = e.currentTarget;
+      btn.disabled = true;
+      ensureReadyThenPay(function (freshApp) {
+        return payNow(freshApp.id);
+      }).catch(function (err) {
+        toast(err.message, "err");
+        btn.disabled = false;
+      });
     });
     var walletBtn = document.getElementById("nss-pay-wallet");
     if (walletBtn && canPayWallet) {
       walletBtn.addEventListener("click", function () {
         walletBtn.disabled = true;
-        api("/applications/" + app.id + "/pay-wallet", "POST")
-          .then(function (res) {
+        ensureReadyThenPay(function (freshApp) {
+          return api("/applications/" + freshApp.id + "/pay-wallet", "POST").then(function () {
             toast("Paid from wallet.", "ok");
-            location.hash = "application/" + app.id;
+            location.hash = "application/" + freshApp.id;
             router();
-          })
-          .catch(function (e) {
-            toast(e.message, "err");
-            walletBtn.disabled = false;
           });
+        }).catch(function (e) {
+          toast(e.message, "err");
+          walletBtn.disabled = false;
+        });
       });
     }
   });
 }
 
 function payNow(applicationId) {
-  api("/applications/" + applicationId + "/payment-order", "POST")
+  return api("/applications/" + applicationId + "/payment-order", "POST")
     .then(function (res) {
       if (!window.Razorpay) {
         toast("Payment gateway script did not load. Please retry.", "err");
@@ -1133,59 +1255,11 @@ function renderProfilePage() {
         '<form id="nss-profile-form" class="nss-card nss-panel">' +
         '<h2>My Profile</h2><p class="nss-panel-sub">This is your Master Profile — every service auto-fills from here.</p>' +
         '<div class="nss-form-grid">' +
-        field("Name", "name", p.name) +
-        field("Mobile", "mobile", p.mobile) +
-        field("Email", "email", p.email, "email") +
-        field("Father's Name", "father_name", p.father_name) +
-        field("Mother's Name", "mother_name", p.mother_name) +
-        field("Date Of Birth", "dob", p.dob, "date") +
-        field("Gender", "gender", p.gender) +
-        field("Address Line 1", "address1", p.address1) +
-        field("Address Line 2", "address2", p.address2) +
-        field("District", "district", p.district) +
-        field("State", "state", p.state) +
-        field("Pincode", "pincode", p.pincode) +
-        field("Aadhaar Number", "aadhaar_no", p.aadhaar_no) +
-        field("Samagra ID", "samagra_id", p.samagra_id) +
-        field("PAN Number", "pan_no", p.pan_no) +
+        profileFieldsHtml(p) +
         "</div>" +
         '<button class="nss-btn nss-btn-primary" type="submit" style="margin-top:20px;">Save Profile</button>' +
         "</form>";
-      function field(label, name, value, type) {
-        return (
-          '<div class="nss-field"><label>' +
-          label +
-          '</label><input class="nss-input" type="' +
-          (type || "text") +
-          '" name="' +
-          name +
-          '" value="' +
-          esc(value || "") +
-          '"/></div>'
-        );
-      }
-      document
-        .getElementById("nss-profile-form")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          api("/profile", "POST", formToObject(e.target))
-            .then(function () {
-              toast("Profile saved.", "ok");
-              STATE.profile = null;
-              if (STATE.returnToApplication) {
-                var returnId = STATE.returnToApplication;
-                STATE.returnToApplication = null;
-                if ("application/" + returnId === location.hash.replace("#", "")) {
-                  renderApplicationDetail(returnId);
-                } else {
-                  location.hash = "application/" + returnId;
-                }
-              }
-            })
-            .catch(function (e2) {
-              toast(e2.message, "err");
-            });
-        });
+      wireProfileForm(document.getElementById("nss-profile-form"), function () {});
     })
     .catch(function (e) {
       content.innerHTML = errorBox(e);
