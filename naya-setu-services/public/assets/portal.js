@@ -188,6 +188,8 @@ var ICONS = {
   bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
   receipt:
     '<path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-3 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/>',
+  wallet:
+    '<path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/><circle cx="17" cy="14" r="1.4"/>',
   settings:
     '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/>',
   menu: '<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
@@ -820,20 +822,14 @@ function renderApplicationReadonly(app, config, statusLog) {
       })
       .join("") || '<li><div class="t-meta">No status history yet.</div></li>';
 
-  var payBtn =
-    "submitted" === app.status
-      ? '<button class="nss-btn nss-btn-primary" id="nss-pay-now">' +
-        icon("credit-card", "nss-icon-sm") +
-        " Pay " +
-        money(config.amount) +
-        "</button>"
-      : "";
+  var awaitingPayment = "submitted" === app.status;
 
   content.innerHTML =
     '<div class="nss-breadcrumb"><a href="#dashboard">Dashboard</a><span class="sep">/</span><a href="#applications">My Applications</a><span class="sep">/</span><span class="current">' +
     esc(app.application_no || "#" + app.id) +
     "</span></div>" +
     '<div class="nss-two-col">' +
+    '<div>' +
     '<div class="nss-card nss-panel">' +
     "<h2>" +
     esc(config.service_label) +
@@ -847,23 +843,108 @@ function renderApplicationReadonly(app, config, statusLog) {
     (fieldRows ||
       '<p class="nss-help">No additional details were required.</p>') +
     "</div>" +
-    (payBtn ? '<div style="margin-top:20px;">' + payBtn + "</div>" : "") +
+    "</div>" +
+    (awaitingPayment ? '<div id="nss-payment-summary" style="margin-top:20px;"></div>' : "") +
     "</div>" +
     '<div class="nss-card nss-panel"><h2>Status Timeline</h2><ul class="nss-timeline">' +
     timeline +
     "</ul></div>" +
     "</div>";
 
-  if ("submitted" === app.status) {
-    document
-      .getElementById("nss-pay-now")
-      .addEventListener("click", function () {
-        payNow(app.id, config.amount);
-      });
+  if (awaitingPayment) {
+    renderPaymentSummary(app, config);
   }
 }
 
-function payNow(applicationId, amount) {
+function renderPaymentSummary(app, config) {
+  var box = document.getElementById("nss-payment-summary");
+  Promise.all([api("/wallet").catch(function () { return { balance: 0, available: false }; })]).then(function (results) {
+    var wallet = results[0];
+    var fee = parseFloat(config.amount) || 0;
+    var discount = parseFloat(app.discount_amount) || 0;
+    var total = Math.max(0, fee - discount);
+    var canPayWallet = wallet.available && wallet.balance >= total;
+
+    box.innerHTML =
+      '<div class="nss-card nss-panel">' +
+      "<h2>Payment Summary</h2>" +
+      '<div class="nss-field" style="margin-bottom:16px;">' +
+      '<label>Coupon Code</label>' +
+      '<div style="display:flex;gap:8px;">' +
+      '<input class="nss-input" type="text" id="nss-coupon-code" placeholder="Enter coupon code" value="' + esc(app.coupon_code || "") + '"' + (app.coupon_code ? " disabled" : "") + '/>' +
+      (app.coupon_code
+        ? '<button class="nss-btn nss-btn-sm nss-btn-danger" id="nss-coupon-remove">Remove</button>'
+        : '<button class="nss-btn nss-btn-sm" id="nss-coupon-apply">Apply</button>') +
+      "</div></div>" +
+      '<div class="nss-payment-row"><span>Service Fee</span><strong>' + money(fee) + "</strong></div>" +
+      '<div class="nss-payment-row"><span>Offer Discount</span><strong' + (discount > 0 ? ' class="nss-discount"' : "") + ">−" + money(discount) + "</strong></div>" +
+      '<div class="nss-payment-row nss-payment-total"><span>Total Amount Pay</span><strong>' + money(total) + "</strong></div>" +
+      '<div class="nss-wallet-box">' +
+      "<span>Wallet Amount</span>" +
+      '<strong>' + money(wallet.balance || 0) + "</strong>" +
+      "</div>" +
+      '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">' +
+      '<button class="nss-btn nss-btn-primary" id="nss-pay-razorpay">' + icon("credit-card", "nss-icon-sm") + " Pay " + money(total) + "</button>" +
+      (wallet.available
+        ? '<button class="nss-btn' + (canPayWallet ? "" : " nss-btn-danger") + '" id="nss-pay-wallet"' + (canPayWallet ? "" : " disabled") + ">" + icon("wallet", "nss-icon-sm") + " Pay From Wallet</button>"
+        : "") +
+      "</div>" +
+      (wallet.available && !canPayWallet ? '<div class="nss-field-hint" style="margin-top:8px;">Wallet balance is not enough to cover this total.</div>' : "") +
+      "</div>";
+
+    var couponInput = document.getElementById("nss-coupon-code");
+    var applyBtn = document.getElementById("nss-coupon-apply");
+    if (applyBtn) {
+      applyBtn.addEventListener("click", function () {
+        var code = couponInput.value.trim();
+        if (!code) { toast("Enter a coupon code first.", "err"); return; }
+        applyBtn.disabled = true;
+        api("/applications/" + app.id + "/apply-coupon", "POST", { code: code })
+          .then(function (res) {
+            toast("Coupon applied.", "ok");
+            renderPaymentSummary(res.application, config);
+          })
+          .catch(function (e) {
+            toast(e.message, "err");
+            applyBtn.disabled = false;
+          });
+      });
+    }
+    var removeBtn = document.getElementById("nss-coupon-remove");
+    if (removeBtn) {
+      removeBtn.addEventListener("click", function () {
+        api("/applications/" + app.id + "/remove-coupon", "POST")
+          .then(function (res) {
+            toast("Coupon removed.", "ok");
+            renderPaymentSummary(res.application, config);
+          })
+          .catch(function (e) { toast(e.message, "err"); });
+      });
+    }
+
+    document.getElementById("nss-pay-razorpay").addEventListener("click", function () {
+      payNow(app.id);
+    });
+    var walletBtn = document.getElementById("nss-pay-wallet");
+    if (walletBtn && canPayWallet) {
+      walletBtn.addEventListener("click", function () {
+        walletBtn.disabled = true;
+        api("/applications/" + app.id + "/pay-wallet", "POST")
+          .then(function (res) {
+            toast("Paid from wallet.", "ok");
+            location.hash = "application/" + app.id;
+            router();
+          })
+          .catch(function (e) {
+            toast(e.message, "err");
+            walletBtn.disabled = false;
+          });
+      });
+    }
+  });
+}
+
+function payNow(applicationId) {
   api("/applications/" + applicationId + "/payment-order", "POST")
     .then(function (res) {
       if (!window.Razorpay) {

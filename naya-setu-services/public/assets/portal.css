@@ -681,6 +681,49 @@ textarea.nss-input {
   margin-top: 10px;
 }
 
+/* ---------- Payment Summary ---------- */
+.nss-payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--nss-line);
+  font-size: 13.5px;
+}
+.nss-payment-row span {
+  color: var(--nss-gray);
+}
+.nss-payment-row .nss-discount {
+  color: var(--nss-green);
+}
+.nss-payment-total {
+  border-bottom: none;
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: 2px solid var(--nss-dark);
+}
+.nss-payment-total span,
+.nss-payment-total strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--nss-dark);
+}
+.nss-wallet-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--nss-bg);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.nss-wallet-box strong {
+  font-size: 17px;
+  color: var(--nss-red);
+}
+
 /* ---------- Document vault ---------- */
 .nss-doc-grid {
   display: grid;
