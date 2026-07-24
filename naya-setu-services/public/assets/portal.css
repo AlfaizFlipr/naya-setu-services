@@ -206,6 +206,14 @@ body.nss-fullpage > * {
   padding: 24px 26px 60px;
   flex: 1;
 }
+/* Login/Sign Up fields are plain stacked .nss-field divs (not inside
+   .nss-form-grid, which supplies its own gap) — without this, consecutive
+   fields (e.g. User Type select -> Email/Mobile) render with zero space
+   between them. .nss-form-grid-2 fields zero this back out (auth.css) since
+   that wrapper already provides its own gap. */
+.nss-auth-form .nss-field {
+  margin-bottom: 14px;
+}
 .nss-menu-toggle {
   display: none;
   border: none;

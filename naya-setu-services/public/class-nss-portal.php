@@ -51,17 +51,17 @@ class NSS_Portal
 		}
 
 		wp_enqueue_style('nss-google-font', 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap', array(), null);
-		wp_enqueue_style('nss-portal', NSS_PLUGIN_URL . 'public/assets/portal.css', array(), NSS_VERSION);
+		wp_enqueue_style('nss-portal', NSS_PLUGIN_URL . 'public/assets/portal.css', array(), self::asset_version('public/assets/portal.css'));
 
 		if (is_user_logged_in()) {
-			wp_enqueue_script('nss-portal', NSS_PLUGIN_URL . 'public/assets/portal.js', array(), NSS_VERSION, true);
+			wp_enqueue_script('nss-portal', NSS_PLUGIN_URL . 'public/assets/portal.js', array(), self::asset_version('public/assets/portal.js'), true);
 			$this->localize();
 			wp_enqueue_script('nss-razorpay-checkout', 'https://checkout.razorpay.com/v1/checkout.js', array(), null, true);
 		} else {
-			wp_enqueue_style('nss-auth', NSS_PLUGIN_URL . 'public/assets/auth.css', array('nss-portal'), NSS_VERSION);
+			wp_enqueue_style('nss-auth', NSS_PLUGIN_URL . 'public/assets/auth.css', array('nss-portal'), self::asset_version('public/assets/auth.css'));
 			wp_enqueue_script('nss-firebase-app', 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js', array(), null, true);
 			wp_enqueue_script('nss-firebase-auth', 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js', array('nss-firebase-app'), null, true);
-			wp_enqueue_script('nss-auth', NSS_PLUGIN_URL . 'public/assets/auth.js', array('nss-firebase-auth'), NSS_VERSION, true);
+			wp_enqueue_script('nss-auth', NSS_PLUGIN_URL . 'public/assets/auth.js', array('nss-firebase-auth'), self::asset_version('public/assets/auth.js'), true);
 			wp_localize_script('nss-auth', 'NSS_AUTH', array(
 				'root' => esc_url_raw(rest_url(NSS_Rest::NS)),
 				'nonce' => wp_create_nonce('wp_rest'),
@@ -69,6 +69,17 @@ class NSS_Portal
 				'firebase' => NSS_Settings::get('firebase', array()),
 			));
 		}
+	}
+
+	/**
+	 * File-mtime cache-buster instead of the static NSS_VERSION constant —
+	 * editing portal.css/js during development must invalidate the browser's
+	 * cached copy immediately, not only on the next version bump.
+	 */
+	protected static function asset_version($relative_path)
+	{
+		$file = NSS_PLUGIN_DIR . $relative_path;
+		return file_exists($file) ? (string) filemtime($file) : NSS_VERSION;
 	}
 
 	protected function localize()
