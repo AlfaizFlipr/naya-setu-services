@@ -483,14 +483,6 @@ document.querySelectorAll("#nss-nav a[data-route]").forEach(function (a) {
   });
 });
 
-document.getElementById("nss-new-request-btn").addEventListener("click", function (e) {
-  e.preventDefault();
-  if ("dashboard" === location.hash.replace("#", "")) {
-    renderDashboard();
-  } else {
-    location.hash = "dashboard";
-  }
-});
 
 // --------------------------------------------------------------- dashboard / catalog
 function serviceCardHtml(svc, iconName) {

@@ -75,9 +75,7 @@ $show_admin_group = $can_manage_apps || $can_verify_docs || $can_manage_config |
 					<div class="nss-topbar-title" id="nss-topbar-title">Dashboard</div>
 				</div>
 				<div class="nss-topbar-right">
-					<a href="#dashboard" id="nss-new-request-btn"
-						class="nss-btn nss-btn-primary nss-btn-sm"><?php echo NSS_Icons::get('plus', 'nss-icon-sm'); ?>
-						New Request</a>
+
 					<div class="nss-user-pill">
 						<div class="nss-user-avatar">
 							<?php echo esc_html(strtoupper(substr($user->display_name, 0, 1))); ?></div>
