@@ -71,6 +71,7 @@ class NSS_Application
 		$per_page = max(1, (int) ($args['per_page'] ?? 20));
 		$paged = max(1, (int) ($args['paged'] ?? 1));
 		$where = array('1=1');
+		$where[] = "status != 'draft'"; // Exclude drafts from admin views
 		$params = array();
 		if (!empty($args['status'])) {
 			$where[] = 'status = %s';

@@ -62,7 +62,15 @@ function api(path, method, body) {
     opts.body = JSON.stringify(body);
   }
   return fetch(NSS.root + path, opts).then(function (res) {
-    return res.json().then(function (json) {
+    return res.text().then(function (text) {
+      var json;
+      try {
+        json = JSON.parse(text);
+      } catch (parseErr) {
+        var match = text.match(/<b>([^<]+)<\/b>:\s*([^<]+)/);
+        var hint = match ? match[1] + ": " + match[2].trim() : "Server returned an invalid response.";
+        throw new Error("Server error — " + hint + " (check PHP error log)");
+      }
       if (!json.ok) throw new Error(json.message || "Something went wrong.");
       return json;
     });
@@ -155,6 +163,19 @@ var DOC_TYPE_LABELS = {
   other: "Other Document",
 };
 
+/** Thumbnail of an uploaded document — actual image preview for images, a PDF tile otherwise. */
+function docPreviewHtml(d) {
+  var url = restFileUrl("/documents/" + d.id + "/file");
+  if ((d.mime || "").indexOf("image/") === 0) {
+    return '<img class="nss-doc-thumb" src="' + url + '" alt="' + esc(d.file_name || "") + '" loading="lazy"/>';
+  }
+  return (
+    '<div class="nss-doc-thumb nss-doc-thumb--pdf">' +
+    icon("file-text", "nss-icon-lg") +
+    "<span>PDF</span></div>"
+  );
+}
+
 // --------------------------------------------------------------- icons
 var ICONS = {
   dashboard:
@@ -211,7 +232,155 @@ var ICONS = {
     '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
   chart:
     '<line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/>',
+  fingerprint:
+    '<path d="M12 11a3 3 0 0 0-3 3c0 2.5-.5 4.5-1.5 6"/><path d="M15 14c0 3-.4 5.2-1 7"/><path d="M17.6 18.7c.3-1.5.4-3.1.4-4.7a6 6 0 0 0-9-5.2"/><path d="M5.4 12.6A6 6 0 0 0 6 14c0 1.5-.2 3-.6 4.3"/><path d="M3.3 8.6A9 9 0 0 1 21 12c0 1 0 2-.2 3"/>',
+  globe:
+    '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  heart:
+    '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  shield:
+    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  rupee:
+    '<path d="M6 3h12"/><path d="M6 8h12"/><path d="M6 13l8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.7 0 6.7-10 0-10"/>',
+  tag: '<path d="M20.59 13.41 11 3.83a2 2 0 0 0-1.42-.58H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .58 1.41l9.59 9.59a2 2 0 0 0 2.83 0l6.59-6.59a2 2 0 0 0 0-2.82z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+  pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  truck:
+    '<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+  award:
+    '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+  scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/>',
+  "check-square":
+    '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  store:
+    '<path d="M3 9l1-5h16l1 5"/><path d="M4 9v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/>',
+  percent:
+    '<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+  "map-pin":
+    '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  tool: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  graduation:
+    '<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/>',
+  eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  trash:
+    '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  download:
+    '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  "trending-up":
+    '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
 };
+
+/**
+ * Per-service icon rules — first regex that matches a service_key wins, so
+ * every sub-service gets its own meaningful icon (like Banking & Finance)
+ * instead of repeating the category icon on every card.
+ */
+var SERVICE_ICON_RULES = [
+  // Specific Aadhaar updates
+  [/^aadhaar_mobile_update/, "phone"],
+  [/^aadhaar_address_update/, "home"],
+  [/^aadhaar_biometric_update/, "scan"],
+  [/^aadhaar_pvc_card/, "credit-card"],
+  [/^aadhaar_edownload/, "download"],
+  [/^aadhaar_verification/, "shield-check"],
+  [/^aadhaar_/, "fingerprint"],
+
+  // Specific PAN updates
+  [/^pan_correction/, "pen"],
+  [/^pan_reprint/, "credit-card"],
+  [/^pan_edownload/, "download"],
+  [/^pan_verification/, "shield-check"],
+  [/^pan_/, "credit-card"],
+
+  // Specific Samagra updates
+  [/^samagra_search/, "search"],
+  [/^samagra_download_card/, "download"],
+  [/^samagra_aadhaar_seeding/, "lock"],
+  [/^samagra_mobile_update/, "phone"],
+  [/^samagra_address_update/, "home"],
+  [/^samagra_member_add/, "plus"],
+  [/^samagra_member_delete/, "trash"],
+  [/^samagra_name_correction/, "pen"],
+  [/^samagra_dob_correction/, "clock"],
+  [/^samagra_gender_correction/, "user"],
+  [/^samagra_/, "users"],
+
+  // Specific Voter updates
+  [/^voter_correction/, "pen"],
+  [/^voter_address_change/, "home"],
+  [/^voter_duplicate_card/, "credit-card"],
+  [/^voter_status_check/, "clock"],
+  [/^voter_download_eepic/, "download"],
+  [/^voter_/, "check-square"],
+
+  // Specific Passport updates
+  [/^passport_reissue/, "pen"],
+  [/^passport_tatkal/, "clock"],
+  [/^passport_pcc/, "shield-check"],
+  [/^passport_appointment/, "clock"],
+  [/^passport_status_tracking/, "clock"],
+  [/^passport_/, "send"],
+
+  // Specific DL updates
+  [/^dl_learner/, "graduation"],
+  [/^dl_duplicate/, "credit-card"],
+  [/^dl_renewal/, "clock"],
+  [/^dl_address_change/, "home"],
+  [/^dl_status/, "clock"],
+  [/^dl_/, "car"],
+
+  [/^abha_/, "heart"],
+  [/^gst_/, "percent"],
+  [/^(msme|company|opc|llp|partnership)_/, "briefcase"],
+  [/^fssai_/, "store"],
+  [/^iec_/, "globe"],
+  [/^trademark_/, "tag"],
+  [/^shop_act/, "store"],
+  [/^dsc$/, "pen"],
+  [/^bank_account/, "bank"],
+  [/^ckyc$/, "shield-check"],
+  [/^(account_verification|penny_drop)/, "check-circle"],
+  [/^loan_/, "rupee"],
+  [/^insurance_/, "shield"],
+  [/^credit_card$/, "credit-card"],
+  [/^cibil/, "trending-up"],
+  [/^(rc_|vehicle_|national_permit|state_permit|challan)/, "car"],
+  [/^e_stamp/, "receipt"],
+  [/^(affidavit|legal_notice|document_drafting)/, "pen"],
+  [/^(rent_agreement|sale_agreement|gift_deed)/, "file-text"],
+  [/^property_/, "home"],
+  [/^encumbrance/, "file-text"],
+  [/^notary/, "check-square"],
+  [/^courier_(track|rate)/, "search"],
+  [/^courier_(pickup_history|shipment_history)/, "clock"],
+  [/^courier_saved_addresses/, "map-pin"],
+  [/^courier_saved_receivers/, "users"],
+  [/^courier_international/, "globe"],
+  [/^courier_reverse/, "truck"],
+  [/^courier_/, "package"],
+  [/^ayushman/, "heart"],
+  [/^pm_kisan/, "rupee"],
+  [/^pmegp/, "briefcase"],
+  [/^pm_vishwakarma/, "tool"],
+  [/^(mukhyamantri|other_schemes)/, "landmark"],
+  [/^scholarship/, "graduation"],
+  [/^pension/, "user"],
+  [/^(labour_card|eshram)/, "id-card"],
+  [/^ration_card/, "home"],
+  [/_certificate$/, "award"],
+  [/^digilocker/, "lock"],
+  [/^esign/, "pen"],
+  [/^document_verification/, "shield-check"],
+  [/^(document_scanner|ocr)/, "scan"],
+  [/^digital_vault/, "lock"],
+];
+function serviceIcon(serviceKey, fallback) {
+  for (var i = 0; i < SERVICE_ICON_RULES.length; i++) {
+    if (SERVICE_ICON_RULES[i][0].test(serviceKey)) return SERVICE_ICON_RULES[i][1];
+  }
+  return fallback || "briefcase";
+}
 function icon(name, cls) {
   if (!ICONS[name]) return "";
   return (
@@ -271,6 +440,7 @@ function router() {
   setActiveNav(route);
   showLoading();
   if ("dashboard" === route) renderDashboard();
+  else if ("categories" === route) renderCategoriesPage();
   else if ("category" === route)
     renderCategory(decodeURIComponent(parts[1] || ""));
   else if ("service" === route)
@@ -280,6 +450,7 @@ function router() {
   else if ("documents" === route) renderDocumentsPage();
   else if ("profile" === route) renderProfilePage();
   else if ("notifications" === route) renderNotifications();
+  else if ("wallet" === route) renderWalletPage();
   else if ("payments" === route) renderPaymentHistory();
   else if ("admin-applications" === route) renderAdminApplications();
   else if ("admin-documents" === route) renderAdminDocuments();
@@ -323,6 +494,12 @@ document.getElementById("nss-new-request-btn").addEventListener("click", functio
 
 // --------------------------------------------------------------- dashboard / catalog
 function serviceCardHtml(svc, iconName) {
+  var paid = Number(svc.payment_required) && parseFloat(svc.amount) > 0;
+  var priceHtml = svc.redirect_url
+    ? '<div class="nss-svc-price nss-svc-price--free">Courier Portal</div>'
+    : paid
+      ? '<div class="nss-svc-price">' + money(svc.amount).replace(".00", "") + "</div>"
+      : '<div class="nss-svc-price nss-svc-price--free">Free</div>';
   return (
     '<div class="nss-svc-card" data-key="' +
     esc(svc.service_key) +
@@ -333,11 +510,12 @@ function serviceCardHtml(svc, iconName) {
     icon("chevron-right", "nss-icon-sm") +
     "</div>" +
     '<div class="nss-icon-badge">' +
-    icon(iconName || "briefcase") +
+    icon(serviceIcon(svc.service_key, iconName)) +
     "</div>" +
     '<div class="nss-svc-name">' +
     esc(svc.service_label) +
     "</div>" +
+    priceHtml +
     "</div>"
   );
 }
@@ -377,8 +555,39 @@ var POPULAR_SERVICE_KEYS = [
 
 function renderDashboard() {
   setTitle("Dashboard");
-  loadCatalog()
-    .then(function (res) {
+  var appsApi = NSS.user.canManageApplications ? "/admin/applications" : "/applications";
+  Promise.all([loadCatalog(), api("/dashboard-stats"), api(appsApi)])
+    .then(function (results) {
+      var res = results[0];
+      var stats = results[1];
+      var apps = results[2].items;
+
+      var statsHtml =
+        '<div class="nss-stats-grid">' +
+        '<div class="nss-stat-card">' +
+        '<div class="nss-stat-icon">' + icon("file-text") + '</div>' +
+        '<div class="nss-stat-info">' +
+        '<div class="nss-stat-value">' + stats.total_applications + '</div>' +
+        '<div class="nss-stat-label">Total Applications</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="nss-stat-card">' +
+        '<div class="nss-stat-icon">' + icon("clock") + '</div>' +
+        '<div class="nss-stat-info">' +
+        '<div class="nss-stat-value">' + stats.month_applications + '</div>' +
+        '<div class="nss-stat-label">' + stats.month_label + ' Month Applications</div>' +
+        '</div>' +
+        '</div>' +
+        '<a class="nss-stat-card nss-stat-card--link" href="#wallet">' +
+        '<div class="nss-stat-icon">' + icon("wallet") + '</div>' +
+        '<div class="nss-stat-info">' +
+        '<div class="nss-stat-value">' + money(stats.wallet_balance) + '</div>' +
+        '<div class="nss-stat-label">Wallet Balance</div>' +
+        '</div>' +
+        '<span class="nss-stat-cta">' + icon("plus", "nss-icon-sm") + ' Add Money</span>' +
+        '</a>' +
+        '</div>';
+
       var cards = res.categories
         .map(function (cat) {
           return (
@@ -423,7 +632,48 @@ function renderDashboard() {
           "</div>"
         : "";
 
+      var appsTitle = NSS.user.canManageApplications ? "Recent Applications" : "My Recent Applications";
+      var appsLink = NSS.user.canManageApplications ? "#admin-applications" : "#applications";
+      var recentHtml;
+      if (!apps || !apps.length) {
+        recentHtml =
+          '<div class="nss-card">' +
+          emptyState("file-text", "No applications yet", "Pick a service above to get started.") +
+          "</div>";
+      } else {
+        recentHtml =
+          '<div class="nss-card nss-recent-list">' +
+          apps.slice(0, 6).map(function (a) {
+            var found = findService(a.service_key);
+            var label = found ? found.service.service_label : a.service_key;
+            var iconName = serviceIcon(a.service_key, found ? found.category.icon : "briefcase");
+            var actionLabel = NSS.user.canManageApplications
+              ? "Manage"
+              : "draft" === a.status ? "Continue" : "Track";
+            return (
+              '<a class="nss-recent-row" href="#application/' + a.id + '">' +
+              '<div class="nss-recent-icon">' + icon(iconName) + '</div>' +
+              '<div class="nss-recent-main">' +
+              '<div class="nss-recent-service">' + esc(label) + '</div>' +
+              '<div class="nss-recent-no">' + esc(a.application_no || "Draft #" + a.id) + ' &middot; ' + fmtDate(a.created_at) + '</div>' +
+              '</div>' +
+              statusPill(a.status) +
+              '<span class="nss-btn nss-btn-sm">' + actionLabel + '</span>' +
+              '</a>'
+            );
+          }).join("") +
+          "</div>";
+      }
+
+      var appsTableHtml =
+        '<div class="nss-section-heading nss-section-heading--row" style="margin-top: 32px;">' +
+        '<span>' + appsTitle + '</span>' +
+        '<a class="nss-section-link" href="' + appsLink + '">View All ' + icon("chevron-right", "nss-icon-sm") + '</a>' +
+        '</div>' +
+        recentHtml;
+
       content.innerHTML =
+        statsHtml +
         '<div class="nss-search-wrap">' +
         icon("search") +
         '<input type="text" class="nss-search-input" id="nss-service-search" placeholder="Search across all ' +
@@ -432,11 +682,16 @@ function renderDashboard() {
         "</div>" +
         '<div id="nss-dashboard-body">' +
         popularHtml +
-        '<div class="nss-section-heading">Browse By Category</div>' +
+        '<div class="nss-section-heading nss-section-heading--row">' +
+        '<span>Browse By Category</span>' +
+        '<a class="nss-section-link" href="#categories">View All ' + icon("chevron-right", "nss-icon-sm") + '</a>' +
+        '</div>' +
         '<div class="nss-cat-grid">' +
         cards +
         "</div>" +
+        appsTableHtml +
         "</div>";
+
       content.querySelectorAll(".nss-cat-card").forEach(function (el) {
         el.addEventListener("click", function () {
           location.hash = "category/" + encodeURIComponent(el.dataset.key);
@@ -485,6 +740,51 @@ function renderDashboard() {
     });
 }
 
+function renderCategoriesPage() {
+  setTitle("Browse Categories");
+  loadCatalog()
+    .then(function (res) {
+      var cards = res.categories
+        .map(function (cat) {
+          return (
+            '<div class="nss-cat-card nss-cat-card--large nss-cat-card--' + esc(cat.key) + '" data-key="' + esc(cat.key) + '">' +
+            '<div class="nss-card-arrow">' +
+            icon("chevron-right", "nss-icon-sm") +
+            "</div>" +
+            '<div class="nss-icon-badge">' +
+            icon(cat.icon || "briefcase") +
+            "</div>" +
+            '<div class="nss-cat-name">' +
+            esc(cat.label) +
+            "</div>" +
+            '<div class="nss-cat-desc">' +
+            esc(CATEGORY_DESCRIPTIONS[cat.key] || "") +
+            "</div>" +
+            '<div class="nss-cat-count">' +
+            cat.services.length +
+            " services available</div>" +
+            "</div>"
+          );
+        })
+        .join("");
+
+      content.innerHTML =
+        '<div class="nss-breadcrumb"><a href="#dashboard">Dashboard</a><span class="sep">/</span><span class="current">Categories</span></div>' +
+        '<div class="nss-cat-grid nss-cat-grid--large">' +
+        cards +
+        "</div>";
+
+      content.querySelectorAll(".nss-cat-card").forEach(function (el) {
+        el.addEventListener("click", function () {
+          location.hash = "category/" + encodeURIComponent(el.dataset.key);
+        });
+      });
+    })
+    .catch(function (e) {
+      content.innerHTML = errorBox(e);
+    });
+}
+
 function renderCategory(key) {
   loadCatalog()
     .then(function () {
@@ -520,7 +820,6 @@ function renderServiceStart(serviceKey) {
     });
 }
 
-// --------------------------------------------------------------- application detail / form editor
 function renderApplicationDetail(id) {
   Promise.all([api("/applications/" + id), loadCatalog()])
     .then(function (results) {
@@ -529,9 +828,9 @@ function renderApplicationDetail(id) {
         config = res.config;
       setTitle(config.service_label);
       if ("draft" === app.status) {
-        renderFormEditor(app, config, res.status_log);
+        renderFormEditor(app, config, res.status_log, res.documents || []);
       } else {
-        renderApplicationReadonly(app, config, res.status_log);
+        renderApplicationReadonly(app, config, res.status_log, res.documents || []);
       }
     })
     .catch(function (e) {
@@ -602,17 +901,102 @@ function fieldInputHtml(field, value) {
   return html;
 }
 
-function profileFieldRow(label, name, value, type) {
+function profileFieldRow(label, name, value, type, required) {
+  var reqStar = required ? ' <span class="req">*</span>' : "";
+  var reqAttr = required ? " required" : "";
   return (
     '<div class="nss-field"><label>' +
     label +
+    reqStar +
     '</label><input class="nss-input" type="' +
     (type || "text") +
     '" name="' +
     name +
     '" value="' +
     esc(value || "") +
-    '"/></div>'
+    '"' + reqAttr + '/></div>'
+  );
+}
+
+function groupedProfileFieldsHtml(p) {
+  return (
+    '<div class="nss-form-section-header">Personal Information</div>' +
+    '<div class="nss-form-grid">' +
+    profileFieldRow("Applicant Full Name", "name", p.name, "text", true) +
+    profileFieldRow("Father\'s Name", "father_name", p.father_name, "text", true) +
+    profileFieldRow("Mother\'s Name", "mother_name", p.mother_name, "text", false) +
+    profileFieldRow("Date Of Birth", "dob", p.dob, "date", true) +
+    profileFieldRow("Gender", "gender", p.gender, "text", true) +
+    '</div>' +
+    
+    '<div class="nss-form-section-header">Contact Details</div>' +
+    '<div class="nss-form-grid">' +
+    profileFieldRow("Mobile Number", "mobile", p.mobile, "tel", true) +
+    profileFieldRow("Email Address", "email", p.email, "email", true) +
+    '</div>' +
+    
+    '<div class="nss-form-section-header">Address Details</div>' +
+    '<div class="nss-form-grid">' +
+    profileFieldRow("Address Line 1", "address1", p.address1, "text", true) +
+    profileFieldRow("Address Line 2", "address2", p.address2, "text", false) +
+    profileFieldRow("District", "district", p.district, "text", true) +
+    profileFieldRow("State", "state", p.state, "text", true) +
+    profileFieldRow("Pincode", "pincode", p.pincode, "text", true) +
+    '</div>' +
+    
+    '<div class="nss-form-section-header">Government Identifiers</div>' +
+    '<div class="nss-form-grid">' +
+    profileFieldRow("Aadhaar Number", "aadhaar_no", p.aadhaar_no, "text", true) +
+    profileFieldRow("Samagra ID", "samagra_id", p.samagra_id, "text", false) +
+    profileFieldRow("PAN Number", "pan_no", p.pan_no, "text", true) +
+    '</div>'
+  );
+}
+
+function applicationStepperHtml(status) {
+  var step1Class = "nss-step";
+  var step2Class = "nss-step";
+  var step3Class = "nss-step";
+  var progressWidth = "0%";
+  
+  if (status === "draft" || status === "submitted") {
+    step1Class += " active";
+    progressWidth = "0%";
+  } else if (status === "in_progress" || status === "pending_user") {
+    step1Class += " completed";
+    step2Class += " active";
+    progressWidth = "50%";
+  } else if (status === "completed") {
+    step1Class += " completed";
+    step2Class += " completed";
+    step3Class += " completed";
+    progressWidth = "100%";
+  } else if (status === "rejected") {
+    step1Class += " completed";
+    step2Class += " completed";
+    step3Class += " rejected";
+    progressWidth = "100%";
+  }
+  
+  var finalStepLabel = status === "rejected" ? "Rejected" : "Completed";
+  var finalStepIcon = status === "rejected" ? "x-circle" : "check-circle";
+  
+  return (
+    '<div class="nss-stepper">' +
+    '<div class="nss-stepper-progress" style="width: ' + progressWidth + ';"></div>' +
+    '<div class="' + step1Class + '">' +
+    '<div class="nss-step-dot">' + icon("plus", "nss-icon-sm") + '</div>' +
+    '<div class="nss-step-label">Submitted</div>' +
+    '</div>' +
+    '<div class="' + step2Class + '">' +
+    '<div class="nss-step-dot">' + icon("clock", "nss-icon-sm") + '</div>' +
+    '<div class="nss-step-label">Processing</div>' +
+    '</div>' +
+    '<div class="' + step3Class + '">' +
+    '<div class="nss-step-dot">' + icon(finalStepIcon, "nss-icon-sm") + '</div>' +
+    '<div class="nss-step-label">' + finalStepLabel + '</div>' +
+    '</div>' +
+    '</div>'
   );
 }
 function profileFieldsHtml(p) {
@@ -669,54 +1053,27 @@ function renderProfileGate(app, profile) {
   });
 }
 
-function renderFormEditor(app, config, statusLog) {
+function renderFormEditor(app, config, statusLog, appDocs) {
+  // appDocs = documents already linked to this specific application (from API)
+  appDocs = appDocs || [];
   Promise.all([loadProfile(), loadDocuments()])
     .then(function (results) {
       var profile = results[0];
-      if (!profile.complete) {
-        renderProfileGate(app, profile);
-        return;
-      }
       var docsByType = {};
+
+      // 1. First seed from the global vault (low priority)
       results[1].forEach(function (d) {
         if ("rejected" !== d.status && !docsByType[d.doc_type])
           docsByType[d.doc_type] = d;
       });
 
-      var autofillRows = [
-        ["Name", profile.name],
-        ["Father's Name", profile.father_name],
-        ["Mother's Name", profile.mother_name],
-        ["DOB", profile.dob],
-        ["Gender", profile.gender],
-        ["Mobile", profile.mobile],
-        ["Email", profile.email],
-        [
-          "Address",
-          [
-            profile.address1,
-            profile.address2,
-            profile.district,
-            profile.state,
-            profile.pincode,
-          ]
-            .filter(Boolean)
-            .join(", "),
-        ],
-        ["Aadhaar", profile.aadhaar_no],
-        ["Samagra ID", profile.samagra_id],
-        ["PAN", profile.pan_no],
-      ]
-        .map(function (r) {
-          return (
-            "<div><span>" +
-            esc(r[0]) +
-            "</span>" +
-            (esc(r[1]) || "—") +
-            "</div>"
-          );
-        })
-        .join("");
+      // 2. Override with application-specific saved documents (high priority)
+      // These are the documents the user explicitly attached to this draft,
+      // so they always take precedence over any vault doc of the same type.
+      appDocs.forEach(function (d) {
+        if ("rejected" !== d.status)
+          docsByType[d.doc_type] = d;
+      });
 
       var fieldsHtml = (config.fields || [])
         .map(function (f) {
@@ -727,65 +1084,303 @@ function renderFormEditor(app, config, statusLog) {
       var docsHtml = (config.required_documents || [])
         .map(function (docType) {
           var have = docsByType[docType];
+          if (have) {
+            return (
+              '<div class="nss-doc-card have" data-doctype="' +
+              esc(docType) +
+              '">' +
+              '<a class="nss-doc-preview" href="' +
+              restFileUrl("/documents/" + have.id + "/file") +
+              '" target="_blank" rel="noopener" title="Open full size">' +
+              docPreviewHtml(have) +
+              "</a>" +
+              '<div class="nss-doc-type">' +
+              esc(DOC_TYPE_LABELS[docType] || docType) +
+              "</div>" +
+              '<div class="nss-doc-filename">' +
+              esc(have.file_name || "") +
+              "</div>" +
+              '<div class="nss-doc-actions" style="margin-top:6px;">' +
+              '<span class="nss-badge nss-badge-on" style="margin:0;">' +
+              icon("check", "nss-icon-sm") +
+              ' On file</span>' +
+              '<button type="button" class="nss-doc-clear-saved nss-btn nss-btn-sm" title="Remove saved file">' +
+              icon("x", "nss-icon-sm") + ' Remove' +
+              '</button>' +
+              '</div>' +
+              '<input type="hidden" class="nss-doc-existing-id" value="' + have.id + '"/>' +
+              "</div>"
+            );
+          }
           return (
-            '<div class="nss-doc-card' +
-            (have ? " have" : "") +
-            '" data-doctype="' +
+            '<div class="nss-doc-card" data-doctype="' +
             esc(docType) +
             '">' +
             '<div class="nss-doc-icon">' +
-            icon(have ? "check-circle" : "upload", "nss-icon-lg") +
+            icon("upload", "nss-icon-lg") +
             "</div>" +
             '<div class="nss-doc-type">' +
             esc(DOC_TYPE_LABELS[docType] || docType) +
             "</div>" +
-            (have
-              ? '<div class="nss-badge nss-badge-on">' +
-                icon("check", "nss-icon-sm") +
-                ' On file</div><input type="hidden" class="nss-doc-existing-id" value="' +
-                have.id +
-                '"/>'
-              : '<input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf"/>') +
+            '<div class="nss-doc-localpreview"></div>' +
+            '<input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf"/>' +
             "</div>"
           );
         })
         .join("");
 
-      content.innerHTML =
+      var formContentHtml =
+        '<div class="nss-form-section-header">Service Title</div>' +
+        '<div style="margin-bottom: 20px;"><span class="nss-btn nss-btn-primary" style="pointer-events: none; border-radius: 8px;">' + esc(config.service_label) + '</span></div>' +
+        groupedProfileFieldsHtml(profile) +
+        (fieldsHtml
+          ? '<div class="nss-form-section-header">Service Details</div><div class="nss-form-grid">' + fieldsHtml + "</div>"
+          : "") +
+        (docsHtml
+          ? '<div class="nss-form-section-header">Required Documents</div><div class="nss-doc-grid">' + docsHtml + "</div>"
+          : "") +
+        '<div class="nss-form-section-header">Comment</div>' +
+        '<textarea class="nss-input" name="comment" rows="3" placeholder="Enter comment (optional)">' + esc(app.form_data.comment || "") + "</textarea>" +
+        '<div style="display:flex;gap:10px;margin-top:24px;">' +
+        '<button type="button" class="nss-btn" id="nss-save-draft">Save Draft</button>' +
+        (config.payment_required
+          ? ""
+          : '<button type="submit" class="nss-btn nss-btn-primary" id="nss-submit-app">Submit Application</button>') +
+        "</div>";
+
+      var breadcrumbHtml =
         '<div class="nss-breadcrumb"><a href="#dashboard">Dashboard</a><span class="sep">/</span><a href="#category/' +
         esc(config.category_key) +
         '">' +
         esc(config.category_label) +
         '</a><span class="sep">/</span><span class="current">' +
         esc(config.service_label) +
-        "</span></div>" +
-        '<div class="nss-autofill-box"><h3>Common Details (Auto-Filled From Your Profile)</h3><div class="nss-autofill-grid">' +
-        autofillRows +
-        "</div>" +
-        (profile.complete
-          ? ""
-          : '<div class="nss-autofill-incomplete">Some profile details are missing — <a href="#profile">complete your profile</a> for smoother processing.</div>') +
-        "</div>" +
-        '<form id="nss-service-form" class="nss-card nss-panel">' +
-        "<h2>" +
-        esc(config.service_label) +
-        "</h2>" +
-        (fieldsHtml
-          ? '<div class="nss-section-heading" style="margin-top:18px;">Service Details</div><div class="nss-form-grid">' + fieldsHtml + "</div>"
-          : "") +
-        (docsHtml
-          ? '<div class="nss-section-heading">Required Documents</div><div class="nss-doc-grid">' + docsHtml + "</div>"
-          : "") +
-        '<div class="nss-section-heading">Comment</div>' +
-        '<textarea class="nss-input" name="comment" rows="3" placeholder="Enter comment (optional)">' + esc(app.form_data.comment || "") + "</textarea>" +
-        (config.payment_required ? '<div id="nss-payment-summary" style="margin-top:24px;"></div>' : "") +
-        '<div style="display:flex;gap:10px;margin-top:20px;">' +
-        '<button type="button" class="nss-btn" id="nss-save-draft">Save Draft</button>' +
-        (config.payment_required
-          ? ""
-          : '<button type="submit" class="nss-btn nss-btn-primary" id="nss-submit-app">Submit Application</button>') +
-        "</div>" +
-        "</form>";
+        "</span></div>";
+
+      if (config.payment_required) {
+        content.innerHTML =
+          breadcrumbHtml +
+          '<div class="nss-form-layout-cols">' +
+          '<div class="nss-form-main-col">' +
+          '<form id="nss-service-form" class="nss-card nss-panel" style="margin-top:0;">' +
+          formContentHtml +
+          '</form>' +
+          '</div>' +
+          '<div class="nss-form-side-col">' +
+          '<div id="nss-payment-summary"></div>' +
+          '</div>' +
+          '</div>';
+      } else {
+        content.innerHTML =
+          breadcrumbHtml +
+          '<form id="nss-service-form" class="nss-card nss-panel" style="margin-top:14px;">' +
+          formContentHtml +
+          "</form>";
+      }
+
+      // Show a live preview and immediately upload/persist the file to the backend
+      content.querySelectorAll(".nss-doc-card input[type=file]").forEach(function (input) {
+        input.addEventListener("change", function () {
+          var card = input.closest(".nss-doc-card");
+          var box = card.querySelector(".nss-doc-localpreview");
+          if (!box) return;
+          var f = input.files[0];
+          if (!f) {
+            box.innerHTML = "";
+            card.classList.remove("picked");
+            return;
+          }
+          
+          card.classList.add("picked");
+          var inner =
+            '<div class="nss-doc-preview">' +
+            (f.type.indexOf("image/") === 0
+              ? '<img class="nss-doc-thumb" src="' + URL.createObjectURL(f) + '" alt=""/>'
+              : '<div class="nss-doc-thumb nss-doc-thumb--pdf">' +
+                icon("file-text", "nss-icon-lg") +
+                "<span>PDF</span></div>") +
+            '</div>' +
+            '<div class="nss-doc-filename">Uploading...</div>' +
+            '<div class="nss-doc-actions">' +
+            '<span class="nss-badge" style="background:#fef3c7;color:#d97706;border:1px solid #fde68a;">Selected</span>' +
+            '<button type="button" class="nss-doc-clear nss-btn nss-btn-sm" title="Remove selected file">' +
+            icon("x", "nss-icon-sm") + ' Remove' +
+            '</button>' +
+            '</div>';
+          box.innerHTML = inner;
+          
+          // Immediate Upload to Backend
+          var fd = new FormData();
+          fd.append("doc_type", card.dataset.doctype);
+          fd.append("file", f);
+          
+          api("/documents", "POST", fd)
+            .then(function (res) {
+              STATE.documents = null; // Clear cached vault documents
+              
+              // Add a hidden input to mark this card as having an uploaded doc
+              var existingIdInput = card.querySelector(".nss-doc-existing-id");
+              if (!existingIdInput) {
+                existingIdInput = document.createElement("input");
+                existingIdInput.type = "hidden";
+                existingIdInput.className = "nss-doc-existing-id";
+                card.appendChild(existingIdInput);
+              }
+              existingIdInput.value = res.document.id;
+              
+              // Update text filename to actual name
+              var filenameEl = box.querySelector(".nss-doc-filename");
+              if (filenameEl) {
+                filenameEl.textContent = f.name;
+              }
+              
+              // Automatically save draft to associate this new document ID with the application draft
+              return saveDraft();
+            })
+            .then(function () {
+              toast("Document uploaded and saved to draft.", "ok");
+            })
+            .catch(function (err) {
+              toast("Failed to upload: " + err.message, "err");
+              box.innerHTML = "";
+              card.classList.remove("picked");
+              input.value = "";
+            });
+        });
+      });
+
+      // Delegated handler: clicking the "Remove" button on a picked card
+      // resets the file input so the user can choose again.
+      content.addEventListener("click", function (e) {
+        var btn = e.target.closest(".nss-doc-clear");
+        if (!btn) return;
+        var card = btn.closest(".nss-doc-card");
+        if (!card) return;
+        var fileInput = card.querySelector("input[type=file]");
+        var box = card.querySelector(".nss-doc-localpreview");
+        if (fileInput) {
+          // Reset the native file input
+          fileInput.value = "";
+          // Trigger a synthetic change event so the listener above clears the preview
+          fileInput.dispatchEvent(new Event("change"));
+        }
+        if (box) {
+          box.innerHTML = "";
+        }
+        card.classList.remove("picked");
+      });
+
+      // Delegated handler: clicking the "Remove" button on an already saved/on-file card
+      content.addEventListener("click", function (e) {
+        var btn = e.target.closest(".nss-doc-clear-saved");
+        if (!btn) return;
+        var card = btn.closest(".nss-doc-card");
+        if (!card) return;
+
+        var docType = card.dataset.doctype;
+
+        var existingIdInput = card.querySelector(".nss-doc-existing-id");
+        var docId = existingIdInput ? parseInt(existingIdInput.value, 10) : null;
+
+        btn.disabled = true;
+        btn.textContent = "Removing…";
+
+        function resetCard() {
+          card.className = "nss-doc-card";
+          card.innerHTML =
+            '<div class="nss-doc-icon">' +
+            icon("upload", "nss-icon-lg") +
+            '</div>' +
+            '<div class="nss-doc-type">' +
+            esc(DOC_TYPE_LABELS[docType] || docType) +
+            '</div>' +
+            '<div class="nss-doc-localpreview"></div>' +
+            '<input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf"/>';
+
+          // Bind the file-input event listener to the newly generated file input element
+          var input = card.querySelector("input[type=file]");
+          input.addEventListener("change", function () {
+            var box = card.querySelector(".nss-doc-localpreview");
+            if (!box) return;
+            var f = input.files[0];
+            if (!f) {
+              box.innerHTML = "";
+              card.classList.remove("picked");
+              return;
+            }
+
+            card.classList.add("picked");
+            var inner =
+              '<div class="nss-doc-preview">' +
+              (f.type.indexOf("image/") === 0
+                ? '<img class="nss-doc-thumb" src="' + URL.createObjectURL(f) + '" alt=""/>'
+                : '<div class="nss-doc-thumb nss-doc-thumb--pdf">' +
+                  icon("file-text", "nss-icon-lg") +
+                  "<span>PDF</span></div>") +
+              '</div>' +
+              '<div class="nss-doc-filename">Uploading...</div>' +
+              '<div class="nss-doc-actions">' +
+              '<span class="nss-badge" style="background:#fef3c7;color:#d97706;border:1px solid #fde68a;">Selected</span>' +
+              '<button type="button" class="nss-doc-clear nss-btn nss-btn-sm" title="Remove selected file">' +
+              icon("x", "nss-icon-sm") + ' Remove' +
+              '</button>' +
+              '</div>';
+            box.innerHTML = inner;
+
+            var fd = new FormData();
+            fd.append("doc_type", card.dataset.doctype);
+            fd.append("file", f);
+
+            api("/documents", "POST", fd)
+              .then(function (res) {
+                STATE.documents = null;
+                var newIdInput = card.querySelector(".nss-doc-existing-id");
+                if (!newIdInput) {
+                  newIdInput = document.createElement("input");
+                  newIdInput.type = "hidden";
+                  newIdInput.className = "nss-doc-existing-id";
+                  card.appendChild(newIdInput);
+                }
+                newIdInput.value = res.document.id;
+                var filenameEl = box.querySelector(".nss-doc-filename");
+                if (filenameEl) filenameEl.textContent = f.name;
+                return saveDraft();
+              })
+              .then(function () {
+                toast("Document uploaded and saved to draft.", "ok");
+              })
+              .catch(function (err) {
+                toast("Failed to upload: " + err.message, "err");
+                box.innerHTML = "";
+                card.classList.remove("picked");
+                input.value = "";
+              });
+          });
+        }
+
+        // If there's a real document ID, delete it from the server first
+        var deletePromise = docId
+          ? api("/documents/" + docId, "DELETE")
+          : Promise.resolve();
+
+        deletePromise
+          .then(function () {
+            STATE.documents = null; // invalidate vault cache
+            resetCard();
+            return saveDraft();
+          })
+          .then(function () {
+            toast("Document removed.", "ok");
+          })
+          .catch(function (err) {
+            toast("Failed to remove document: " + err.message, "err");
+            // Re-enable the button so user can try again
+            if (btn && btn.parentNode) {
+              btn.disabled = false;
+              btn.textContent = "Remove";
+            }
+          });
+      });
 
       function collectDocumentIds() {
         var ids = [];
@@ -819,15 +1414,45 @@ function renderFormEditor(app, config, statusLog) {
         });
       }
 
+      function saveProfileFields() {
+        var form = document.getElementById("nss-service-form");
+        var pData = {
+          name: form.elements["name"] ? form.elements["name"].value : "",
+          mobile: form.elements["mobile"] ? form.elements["mobile"].value : "",
+          email: form.elements["email"] ? form.elements["email"].value : "",
+          father_name: form.elements["father_name"] ? form.elements["father_name"].value : "",
+          mother_name: form.elements["mother_name"] ? form.elements["mother_name"].value : "",
+          dob: form.elements["dob"] ? form.elements["dob"].value : "",
+          gender: form.elements["gender"] ? form.elements["gender"].value : "",
+          address1: form.elements["address1"] ? form.elements["address1"].value : "",
+          address2: form.elements["address2"] ? form.elements["address2"].value : "",
+          district: form.elements["district"] ? form.elements["district"].value : "",
+          state: form.elements["state"] ? form.elements["state"].value : "",
+          pincode: form.elements["pincode"] ? form.elements["pincode"].value : "",
+          aadhaar_no: form.elements["aadhaar_no"] ? form.elements["aadhaar_no"].value : "",
+          samagra_id: form.elements["samagra_id"] ? form.elements["samagra_id"].value : "",
+          pan_no: form.elements["pan_no"] ? form.elements["pan_no"].value : ""
+        };
+        return api("/profile", "POST", pData).then(function (res) {
+          STATE.profile = res.profile;
+        });
+      }
+
       function saveDraft() {
         var formData = formToObject(
           document.getElementById("nss-service-form"),
         );
-        return collectDocumentIds().then(function (docIds) {
+        return saveProfileFields().then(function () {
+          return collectDocumentIds();
+        }).then(function (docIds) {
           return api("/applications/" + app.id, "PATCH", {
             form_data: formData,
             document_ids: docIds,
           });
+        }).then(function () {
+          // Force a fresh document load on next render so newly uploaded
+          // docs appear as "have" when the page is reloaded.
+          STATE.documents = null;
         });
       }
 
@@ -893,66 +1518,175 @@ function renderFormEditor(app, config, statusLog) {
     });
 }
 
-function renderApplicationReadonly(app, config, statusLog) {
-  var fieldRows = (config.fields || [])
-    .map(function (f) {
-      return (
-        "<div><span>" +
-        esc(f.label) +
-        "</span>" +
-        (esc(app.form_data[f.name]) || "—") +
-        "</div>"
-      );
-    })
-    .join("");
-
-  var timeline =
-    (statusLog || [])
-      .map(function (row) {
+function renderApplicationReadonly(app, config, statusLog, documents) {
+  documents = documents || [];
+  loadProfile().then(function (profile) {
+    var fieldRows = (config.fields || [])
+      .map(function (f) {
         return (
-          '<li><div><div class="t-status">' +
-          esc(STATUS_LABELS[row.to_status] || row.to_status) +
-          "</div>" +
-          '<div class="t-meta">' +
-          fmtDate(row.created_at) +
-          (row.note ? " — " + esc(row.note) : "") +
-          "</div></div></li>"
+          "<div><span>" +
+          esc(f.label) +
+          "</span>" +
+          (esc(app.form_data[f.name]) || "—") +
+          "</div>"
         );
       })
-      .join("") || '<li><div class="t-meta">No status history yet.</div></li>';
+      .join("");
 
-  var awaitingPayment = "submitted" === app.status;
+    var profileRows = [
+      ["Applicant Full Name", profile.name],
+      ["Father's Name", profile.father_name],
+      ["Mother's Name", profile.mother_name],
+      ["Date Of Birth", profile.dob],
+      ["Gender", profile.gender],
+      ["Mobile Number", profile.mobile],
+      ["Email Address", profile.email],
+      [
+        "Address",
+        [
+          profile.address1,
+          profile.address2,
+          profile.district,
+          profile.state,
+          profile.pincode,
+        ]
+          .filter(Boolean)
+          .join(", "),
+      ],
+      ["Aadhaar Number", profile.aadhaar_no],
+      ["Samagra ID", profile.samagra_id],
+      ["PAN Number", profile.pan_no],
+    ]
+      .map(function (r) {
+        return (
+          "<div><span>" +
+          esc(r[0]) +
+          "</span>" +
+          (esc(r[1]) || "—") +
+          "</div>"
+        );
+      })
+      .join("");
 
-  content.innerHTML =
-    '<div class="nss-breadcrumb"><a href="#dashboard">Dashboard</a><span class="sep">/</span><a href="#applications">My Applications</a><span class="sep">/</span><span class="current">' +
-    esc(app.application_no || "#" + app.id) +
-    "</span></div>" +
-    '<div class="nss-two-col">' +
-    '<div>' +
-    '<div class="nss-card nss-panel">' +
-    "<h2>" +
-    esc(config.service_label) +
-    "</h2>" +
-    '<p class="nss-panel-sub">' +
-    esc(app.application_no || "Application #" + app.id) +
-    " · " +
-    statusPill(app.status) +
-    "</p>" +
-    '<div class="nss-autofill-grid">' +
-    (fieldRows ||
-      '<p class="nss-help">No additional details were required.</p>') +
-    "</div>" +
-    "</div>" +
-    (awaitingPayment ? '<div id="nss-payment-summary" style="margin-top:20px;"></div>' : "") +
-    "</div>" +
-    '<div class="nss-card nss-panel"><h2>Status Timeline</h2><ul class="nss-timeline">' +
-    timeline +
-    "</ul></div>" +
-    "</div>";
+    var timeline =
+      (statusLog || [])
+        .map(function (row) {
+          return (
+            '<li><div><div class="t-status">' +
+            esc(STATUS_LABELS[row.to_status] || row.to_status) +
+            "</div>" +
+            '<div class="t-meta">' +
+            fmtDate(row.created_at) +
+            (row.note ? " — " + esc(row.note) : "") +
+            "</div></div></li>"
+          );
+        })
+        .join("") || '<li><div class="t-meta">No status history yet.</div></li>';
 
-  if (awaitingPayment) {
-    renderPaymentSummary(app, config);
-  }
+    var awaitingPayment = "submitted" === app.status;
+    var stepperHtml = applicationStepperHtml(app.status);
+
+    var adminStatusHtml = "";
+    var isAdmin = NSS.user.isAdmin || NSS.user.canManageApplications;
+    if (isAdmin) {
+      var statusOptions = Object.keys(STATUS_LABELS)
+        .map(function (k) {
+          return '<option value="' + k + '"' + (k === app.status ? ' selected' : '') + '>' + STATUS_LABELS[k] + "</option>";
+        })
+        .join("");
+      adminStatusHtml =
+        '<div class="nss-card nss-panel" style="margin-top:20px;">' +
+        '<h2>Admin: Update Status</h2>' +
+        '<div class="nss-field" style="margin-top:12px;">' +
+        '<label>Application Status</label>' +
+        '<div style="display:flex;gap:10px;align-items:center;margin-top:6px;">' +
+        '<select class="nss-select" id="nss-detail-status" style="width:auto;">' + statusOptions + '</select>' +
+        '<button class="nss-btn nss-btn-primary" id="nss-detail-save-status">Update Status</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+    }
+
+    content.innerHTML =
+      '<div class="nss-breadcrumb"><a href="#dashboard">Dashboard</a><span class="sep">/</span><a href="#applications">My Applications</a><span class="sep">/</span><span class="current">' +
+      esc(app.application_no || "#" + app.id) +
+      "</span></div>" +
+      stepperHtml +
+      '<div class="nss-two-col">' +
+      '<div>' +
+      '<div class="nss-card nss-panel">' +
+      "<h2>Applicant Details</h2>" +
+      '<div class="nss-autofill-grid">' +
+      profileRows +
+      "</div>" +
+      "</div>" +
+      (fieldRows
+        ? '<div class="nss-card nss-panel" style="margin-top:20px;">' +
+          "<h2>Service Details</h2>" +
+          '<div class="nss-autofill-grid">' +
+          fieldRows +
+          "</div>" +
+          "</div>"
+        : "") +
+      (documents.length
+        ? '<div class="nss-card nss-panel" style="margin-top:20px;">' +
+          "<h2>Uploaded Documents</h2>" +
+          '<div class="nss-doc-grid" style="margin-top:14px;">' +
+          documents.map(function (d) {
+            return (
+              '<div class="nss-doc-card have">' +
+              '<a class="nss-doc-preview" href="' +
+              restFileUrl("/documents/" + d.id + "/file") +
+              '" target="_blank" rel="noopener" title="Open full size">' +
+              docPreviewHtml(d) +
+              "</a>" +
+              '<div class="nss-doc-type">' +
+              esc(DOC_TYPE_LABELS[d.doc_type] || d.doc_type) +
+              "</div>" +
+              '<div class="nss-doc-filename">' +
+              esc(d.file_name || "") +
+              "</div>" +
+              '<span class="nss-badge' +
+              ("verified" === d.status ? " nss-badge-on" : "") +
+              '">' +
+              esc(d.status) +
+              "</span>" +
+              "</div>"
+            );
+          }).join("") +
+          "</div>" +
+          "</div>"
+        : "") +
+      (awaitingPayment ? '<div id="nss-payment-summary" style="margin-top:20px;"></div>' : "") +
+      adminStatusHtml +
+      "</div>" +
+      '<div class="nss-card nss-panel"><h2>Status Timeline</h2><ul class="nss-timeline">' +
+      timeline +
+      "</ul></div>" +
+      "</div>";
+
+    if (awaitingPayment) {
+      renderPaymentSummary(app, config);
+    }
+
+    if (isAdmin) {
+      document.getElementById("nss-detail-save-status").addEventListener("click", function () {
+        var select = document.getElementById("nss-detail-status");
+        var note = prompt("Optional note for this status change:", "") || "";
+        api("/admin/applications/" + app.id + "/status", "POST", {
+          status: select.value,
+          note: note,
+        })
+          .then(function () {
+            toast("Status updated.", "ok");
+            renderApplicationDetail(app.id);
+          })
+          .catch(function (e) {
+            toast(e.message, "err");
+          });
+      });
+    }
+  });
 }
 
 /**
@@ -993,7 +1727,9 @@ function renderPaymentSummary(app, config, options) {
         ? '<button type="button" class="nss-btn' + (canPayWallet ? "" : " nss-btn-danger") + '" id="nss-pay-wallet"' + (canPayWallet ? "" : " disabled") + ">" + icon("wallet", "nss-icon-sm") + " Pay From Wallet</button>"
         : "") +
       "</div>" +
-      (wallet.available && !canPayWallet ? '<div class="nss-field-hint" style="margin-top:8px;">Wallet balance is not enough to cover this total.</div>' : "") +
+      (wallet.available && !canPayWallet
+        ? '<div class="nss-field-hint" style="margin-top:8px;">Wallet balance is not enough to cover this total. <a href="#wallet">Add money to wallet</a></div>'
+        : "") +
       "</div>";
 
     var couponInput = document.getElementById("nss-coupon-code");
@@ -1123,32 +1859,67 @@ function renderApplicationsList() {
           "</div>";
         return;
       }
-      var rows = items
-        .map(function (a) {
-          var found = findService(a.service_key);
-          var label = found ? found.service.service_label : a.service_key;
-          return (
-            "<tr><td>" +
-            esc(a.application_no || "Draft #" + a.id) +
-            "</td><td>" +
-            esc(label) +
-            "</td><td>" +
-            statusPill(a.status) +
-            "</td><td>" +
-            fmtDate(a.created_at) +
-            "</td>" +
-            '<td><a class="nss-btn nss-btn-sm" href="#application/' +
-            a.id +
-            '">' +
-            ("draft" === a.status ? "Continue" : "View") +
-            "</a></td></tr>"
-          );
-        })
-        .join("");
+
+      var STATUS_ICONS = {
+        draft: "clock",
+        submitted: "file-text",
+        in_progress: "clock",
+        pending_user: "bell",
+        completed: "check-circle",
+        rejected: "x-circle"
+      };
+
+      var cards = items.map(function (a) {
+        var found = findService(a.service_key);
+        var label = found ? found.service.service_label : a.service_key;
+        var catIcon = found ? (found.category.icon || "briefcase") : "briefcase";
+        var isDraft = "draft" === a.status;
+        var isCompleted = "completed" === a.status;
+        var isRejected = "rejected" === a.status;
+        var statusIcon = STATUS_ICONS[a.status] || "clock";
+
+        return (
+          '<div class="nss-app-card' +
+          (isDraft ? " nss-app-card--draft" : "") +
+          (isCompleted ? " nss-app-card--completed" : "") +
+          (isRejected ? " nss-app-card--rejected" : "") +
+          '">' +
+
+          '<div class="nss-app-card__header">' +
+          '<div class="nss-app-card__icon">' + icon(catIcon) + '</div>' +
+          '<div class="nss-app-card__title-wrap">' +
+          '<div class="nss-app-card__service">' + esc(label) + '</div>' +
+          '<div class="nss-app-card__no">' + esc(a.application_no || (isDraft ? "Draft — Not submitted" : "App #" + a.id)) + '</div>' +
+          '</div>' +
+          statusPill(a.status) +
+          '</div>' +
+
+          '<div class="nss-app-card__meta">' +
+          '<div class="nss-app-card__meta-item">' +
+          icon("clock", "nss-icon-sm") + ' <span>Applied: ' + fmtDate(a.created_at) + '</span>' +
+          '</div>' +
+          '<div class="nss-app-card__meta-item">' +
+          icon("clock", "nss-icon-sm") + ' <span>Updated: ' + fmtDate(a.updated_at || a.created_at) + '</span>' +
+          '</div>' +
+          '</div>' +
+
+          '<div class="nss-app-card__footer">' +
+          (isDraft
+            ? '<a class="nss-btn nss-btn-primary" href="#application/' + a.id + '">' + icon("file-text", "nss-icon-sm") + ' Continue Application</a>'
+            : '<a class="nss-btn nss-btn-sm" href="#application/' + a.id + '">' + icon("chevron-right", "nss-icon-sm") + ' Track Application</a>'
+          ) +
+          '</div>' +
+
+          '</div>'
+        );
+      }).join("");
+
       content.innerHTML =
-        '<div class="nss-tablewrap"><table class="nss-table"><thead><tr><th>Application</th><th>Service</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody>' +
-        rows +
-        "</tbody></table></div>";
+        '<div class="nss-apps-page-header">' +
+        '<h2>My Applications</h2>' +
+        '<span class="nss-apps-count">' + items.length + ' application' + (items.length !== 1 ? 's' : '') + '</span>' +
+        '</div>' +
+        '<div class="nss-app-cards-grid">' + cards + '</div>';
     })
     .catch(function (e) {
       content.innerHTML = errorBox(e);
@@ -1167,33 +1938,49 @@ function renderDocumentsPage() {
           );
         })
         .join("");
-      var rows =
-        items
-          .map(function (d) {
-            return (
-              "<tr><td>" +
-              esc(DOC_TYPE_LABELS[d.doc_type] || d.doc_type) +
-              "</td><td>" +
-              esc(d.file_name) +
-              "</td>" +
-              '<td><span class="nss-badge' +
-              ("verified" === d.status ? " nss-badge-on" : "") +
-              '">' +
-              esc(d.status) +
-              "</span></td>" +
-              "<td>" +
-              fmtDate(d.created_at) +
-              "</td>" +
-              '<td><a class="nss-btn nss-btn-sm" href="' +
-              restFileUrl("/documents/" + d.id + "/file") +
-              '" target="_blank" rel="noopener">View</a> ' +
-              '<button class="nss-btn nss-btn-sm nss-btn-danger" data-id="' +
-              d.id +
-              '">Delete</button></td></tr>'
-            );
-          })
-          .join("") ||
-        '<tr><td colspan="5" class="nss-empty">No documents uploaded yet.</td></tr>';
+      var cardsHtml = items.length
+        ? '<div class="nss-vault-grid">' +
+          items
+            .map(function (d) {
+              return (
+                '<div class="nss-vault-card">' +
+                '<a class="nss-vault-preview" href="' +
+                restFileUrl("/documents/" + d.id + "/file") +
+                '" target="_blank" rel="noopener" title="Open full size">' +
+                docPreviewHtml(d) +
+                '<span class="nss-vault-view">' + icon("eye", "nss-icon-sm") + " View</span>" +
+                "</a>" +
+                '<div class="nss-vault-body">' +
+                '<div class="nss-vault-type">' +
+                esc(DOC_TYPE_LABELS[d.doc_type] || d.doc_type) +
+                "</div>" +
+                '<div class="nss-vault-filename">' +
+                esc(d.file_name) +
+                "</div>" +
+                '<div class="nss-vault-meta">' +
+                '<span class="nss-badge' +
+                ("verified" === d.status ? " nss-badge-on" : "") +
+                '">' +
+                esc(d.status) +
+                "</span>" +
+                "<span>" +
+                fmtDate(d.created_at) +
+                "</span>" +
+                "</div>" +
+                '<button class="nss-btn nss-btn-sm nss-btn-danger" data-id="' +
+                d.id +
+                '">' +
+                icon("trash", "nss-icon-sm") +
+                " Delete</button>" +
+                "</div>" +
+                "</div>"
+              );
+            })
+            .join("") +
+          "</div>"
+        : '<div class="nss-card" style="margin-top:20px;">' +
+          emptyState("folder", "No documents uploaded yet", "Upload once — every service reuses whatever is already here.") +
+          "</div>";
 
       content.innerHTML =
         '<div class="nss-card nss-panel">' +
@@ -1209,9 +1996,10 @@ function renderDocumentsPage() {
         " Upload</button></div>" +
         "</form>" +
         "</div>" +
-        '<div class="nss-tablewrap" style="margin-top:20px;"><table class="nss-table"><thead><tr><th>Type</th><th>File</th><th>Status</th><th>Uploaded</th><th></th></tr></thead><tbody>' +
-        rows +
-        "</tbody></table></div>";
+        '<div class="nss-section-heading" style="margin-top:26px;">My Document Vault (' +
+        items.length +
+        ")</div>" +
+        cardsHtml;
 
       document
         .getElementById("nss-doc-upload")
@@ -1294,6 +2082,153 @@ function renderNotifications() {
     });
 }
 
+// --------------------------------------------------------------- My Wallet
+function renderWalletPage() {
+  setTitle("My Wallet");
+  api("/wallet/transactions")
+    .then(function (res) {
+      if (!res.available) {
+        content.innerHTML =
+          '<div class="nss-card">' +
+          emptyState("wallet", "Wallet not available yet", "The wallet becomes active once the courier wallet system is set up on this site.") +
+          "</div>";
+        return;
+      }
+
+      var txRows = (res.items || [])
+        .map(function (t) {
+          var isCredit = "credit" === t.type;
+          return (
+            '<div class="nss-tx-row">' +
+            '<div class="nss-tx-icon ' + (isCredit ? "nss-tx-icon--credit" : "nss-tx-icon--debit") + '">' +
+            icon(isCredit ? "plus" : "arrow-left") +
+            "</div>" +
+            '<div class="nss-tx-main">' +
+            '<div class="nss-tx-note">' + esc(t.note || (isCredit ? "Money added" : "Payment")) + "</div>" +
+            '<div class="nss-tx-date">' + fmtDate(t.created_at) + "</div>" +
+            "</div>" +
+            '<div class="nss-tx-amounts">' +
+            '<div class="nss-tx-amount ' + (isCredit ? "nss-tx-amount--credit" : "nss-tx-amount--debit") + '">' +
+            (isCredit ? "+" : "−") + money(t.amount) +
+            "</div>" +
+            '<div class="nss-tx-balance">Bal: ' + money(t.balance_after) + "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        })
+        .join("");
+
+      content.innerHTML =
+        '<div class="nss-wallet-layout">' +
+        '<div class="nss-wallet-main">' +
+        '<div class="nss-wallet-hero">' +
+        '<div class="nss-wallet-hero-icon">' + icon("wallet") + "</div>" +
+        '<div class="nss-wallet-hero-label">Available Balance</div>' +
+        '<div class="nss-wallet-hero-amount">' + money(res.balance) + "</div>" +
+        '<div class="nss-wallet-hero-sub">One wallet across Services &amp; Courier — pay for any application instantly.</div>' +
+        "</div>" +
+        '<div class="nss-card nss-panel" style="margin-top:20px;">' +
+        "<h2>Transaction History</h2>" +
+        '<p class="nss-panel-sub">Latest 50 wallet entries.</p>' +
+        (txRows ||
+          emptyState("receipt", "No transactions yet", "Add money or pay for a service to see entries here.")) +
+        "</div>" +
+        "</div>" +
+        '<div class="nss-wallet-side">' +
+        '<div class="nss-card nss-panel">' +
+        "<h2>Add Money</h2>" +
+        '<p class="nss-panel-sub">Top up securely via Razorpay (UPI, card, netbanking).</p>' +
+        '<div class="nss-topup-chips">' +
+        [200, 500, 1000, 2000]
+          .map(function (v) {
+            return '<button type="button" class="nss-topup-chip" data-amount="' + v + '">₹' + v + "</button>";
+          })
+          .join("") +
+        "</div>" +
+        '<div class="nss-field" style="margin-top:14px;"><label>Amount (₹)</label>' +
+        '<input class="nss-input" type="number" id="nss-topup-amount" min="1" max="100000" step="1" placeholder="Enter amount"/></div>' +
+        '<button class="nss-btn nss-btn-primary nss-btn-block" id="nss-topup-btn" style="margin-top:14px;">' +
+        icon("plus", "nss-icon-sm") +
+        " Add Money</button>" +
+        '<div class="nss-help" style="margin-top:10px;">Minimum ₹1 — maximum ₹1,00,000 per top-up.</div>' +
+        "</div>" +
+        "</div>" +
+        "</div>";
+
+      var amountInput = document.getElementById("nss-topup-amount");
+      content.querySelectorAll(".nss-topup-chip").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          amountInput.value = chip.dataset.amount;
+          content.querySelectorAll(".nss-topup-chip").forEach(function (c) {
+            c.classList.toggle("active", c === chip);
+          });
+        });
+      });
+
+      document.getElementById("nss-topup-btn").addEventListener("click", function (e) {
+        var btn = e.currentTarget;
+        var amount = parseFloat(amountInput.value);
+        if (!amount || amount < 1) {
+          toast("Enter an amount of at least ₹1.", "err");
+          return;
+        }
+        btn.disabled = true;
+        walletTopup(amount).finally(function () {
+          btn.disabled = false;
+        });
+      });
+    })
+    .catch(function (e) {
+      content.innerHTML = errorBox(e);
+    });
+}
+
+/** Razorpay checkout for a wallet top-up; on success credits the wallet and refreshes the page. */
+function walletTopup(amount) {
+  return api("/wallet/topup-order", "POST", { amount: amount })
+    .then(function (res) {
+      if (!window.Razorpay) {
+        toast("Payment gateway script did not load. Please retry.", "err");
+        return;
+      }
+      var profile = STATE.profile || {};
+      var rzp = new Razorpay({
+        key: res.key_id || "",
+        amount: res.order.amount,
+        currency: res.order.currency,
+        order_id: res.order.id,
+        name: "Naya Setu Services",
+        description: "Wallet top-up",
+        prefill: {
+          name: profile.name || "",
+          email: profile.email || "",
+          contact: profile.mobile || "",
+        },
+        theme: { color: "#bb0b0b" },
+        handler: function (response) {
+          api("/wallet/topup-verify", "POST", {
+            order_id: response.razorpay_order_id,
+            payment_id: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          })
+            .then(function (verifyRes) {
+              toast("₹" + amount + " added to your wallet.", "ok");
+              if ("wallet" === location.hash.replace("#", "")) {
+                renderWalletPage();
+              }
+            })
+            .catch(function (e) {
+              toast(e.message, "err");
+            });
+        },
+      });
+      rzp.open();
+    })
+    .catch(function (e) {
+      toast(e.message, "err");
+    });
+}
+
 function renderPaymentHistory() {
   setTitle("Payment History");
   api("/payments")
@@ -1333,53 +2268,87 @@ function renderAdminApplications() {
   Promise.all([api("/admin/applications"), loadCatalog()])
     .then(function (results) {
       var items = results[0].items;
+      if (!items.length) {
+        content.innerHTML =
+          '<div class="nss-card">' +
+          emptyState("briefcase", "No applications yet", "No submissions received from users yet.") +
+          "</div>";
+        return;
+      }
+
       var statusOptions = Object.keys(STATUS_LABELS)
         .map(function (k) {
           return '<option value="' + k + '">' + STATUS_LABELS[k] + "</option>";
         })
         .join("");
-      var rows =
-        items
-          .map(function (a) {
-            var found = findService(a.service_key);
-            var label = found ? found.service.service_label : a.service_key;
-            return (
-              "<tr><td>" +
-              esc(a.application_no || "Draft #" + a.id) +
-              "</td><td>" +
-              esc(label) +
-              "</td><td>" +
-              statusPill(a.status) +
-              "</td><td>" +
-              fmtDate(a.created_at) +
-              "</td>" +
-              '<td><select class="nss-select nss-status-select" data-id="' +
-              a.id +
-              '" style="width:auto;display:inline-block;">' +
-              statusOptions.replace(
-                'value="' + a.status + '"',
-                'value="' + a.status + '" selected',
-              ) +
-              "</select> " +
-              '<button class="nss-btn nss-btn-sm nss-save-status" data-id="' +
-              a.id +
-              '">Save</button></td></tr>'
-            );
-          })
-          .join("") ||
-        '<tr><td colspan="5" class="nss-empty">No applications yet.</td></tr>';
+
+      var cards = items.map(function (a) {
+        var found = findService(a.service_key);
+        var label = found ? found.service.service_label : a.service_key;
+        var catIcon = found ? (found.category.icon || "briefcase") : "briefcase";
+        var isCompleted = "completed" === a.status;
+        var isRejected = "rejected" === a.status;
+
+        var selectHtml =
+          '<select class="nss-select nss-status-select" data-id="' + a.id + '">' +
+          statusOptions.replace(
+            'value="' + a.status + '"',
+            'value="' + a.status + '" selected'
+          ) +
+          '</select>';
+
+        return (
+          '<div class="nss-app-card nss-app-card--admin' +
+          (isCompleted ? " nss-app-card--completed" : "") +
+          (isRejected ? " nss-app-card--rejected" : "") +
+          '">' +
+
+          '<div class="nss-app-card__header">' +
+          '<div class="nss-app-card__icon">' + icon(catIcon) + '</div>' +
+          '<div class="nss-app-card__title-wrap">' +
+          '<div class="nss-app-card__service">' + esc(label) + '</div>' +
+          '<div class="nss-app-card__no">' + esc(a.application_no || "App #" + a.id) + '</div>' +
+          '</div>' +
+          statusPill(a.status) +
+          '</div>' +
+
+          '<div class="nss-app-card__meta">' +
+          '<div class="nss-app-card__meta-item">' +
+          icon("user", "nss-icon-sm") + ' <span>User #' + esc(String(a.user_id)) + '</span>' +
+          '</div>' +
+          '<div class="nss-app-card__meta-item">' +
+          icon("clock", "nss-icon-sm") + ' <span>' + fmtDate(a.created_at) + '</span>' +
+          '</div>' +
+          '</div>' +
+
+          '<div class="nss-app-card__admin-controls">' +
+          '<div class="nss-app-card__status-wrap">' +
+          selectHtml +
+          '<button class="nss-btn nss-btn-primary nss-btn-sm nss-save-status" data-id="' + a.id + '">' +
+          icon("check", "nss-icon-sm") + ' Update</button>' +
+          '</div>' +
+          '<a class="nss-btn nss-btn-sm" href="#application/' + a.id + '">' +
+          icon("chevron-right", "nss-icon-sm") + ' View Detail</a>' +
+          '</div>' +
+
+          '</div>'
+        );
+      }).join("");
 
       content.innerHTML =
-        '<div class="nss-tablewrap"><table class="nss-table"><thead><tr><th>Application</th><th>Service</th><th>Status</th><th>Created</th><th>Update Status</th></tr></thead><tbody>' +
-        rows +
-        "</tbody></table></div>";
+        '<div class="nss-apps-page-header">' +
+        '<h2>All Applications</h2>' +
+        '<span class="nss-apps-count">' + items.length + ' submission' + (items.length !== 1 ? 's' : '') + '</span>' +
+        '</div>' +
+        '<div class="nss-app-cards-grid">' + cards + '</div>';
 
       content.querySelectorAll(".nss-save-status").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var select = content.querySelector(
-            '.nss-status-select[data-id="' + btn.dataset.id + '"]',
+            '.nss-status-select[data-id="' + btn.dataset.id + '"]'
           );
           var note = prompt("Optional note for this status change:", "") || "";
+          btn.disabled = true;
           api("/admin/applications/" + btn.dataset.id + "/status", "POST", {
             status: select.value,
             note: note,
@@ -1390,6 +2359,7 @@ function renderAdminApplications() {
             })
             .catch(function (e) {
               toast(e.message, "err");
+              btn.disabled = false;
             });
         });
       });
@@ -1404,36 +2374,53 @@ function renderAdminDocuments() {
   setTitle("Document Verification");
   api("/admin/documents")
     .then(function (res) {
-      var rows =
-        res.items
-          .map(function (d) {
-            return (
-              "<tr><td>" +
-              esc(d.display_name || "User #" + d.user_id) +
-              "</td><td>" +
-              esc(DOC_TYPE_LABELS[d.doc_type] || d.doc_type) +
-              "</td>" +
-              '<td><a href="' +
-              restFileUrl("/documents/" + d.id + "/file") +
-              '" target="_blank" rel="noopener">View File</a></td>' +
-              "<td>" +
-              fmtDate(d.created_at) +
-              "</td>" +
-              '<td><button class="nss-btn nss-btn-sm" data-id="' +
-              d.id +
-              '" data-action="verified">Verify</button> ' +
-              '<button class="nss-btn nss-btn-sm nss-btn-danger" data-id="' +
-              d.id +
-              '" data-action="rejected">Reject</button></td></tr>'
-            );
-          })
-          .join("") ||
-        '<tr><td colspan="5" class="nss-empty">No documents pending verification.</td></tr>';
+      var cards = res.items
+        .map(function (d) {
+          return (
+            '<div class="nss-vault-card">' +
+            '<a class="nss-vault-preview" href="' +
+            restFileUrl("/documents/" + d.id + "/file") +
+            '" target="_blank" rel="noopener" title="Open full size">' +
+            docPreviewHtml(d) +
+            '<span class="nss-vault-view">' + icon("eye", "nss-icon-sm") + " View</span>" +
+            "</a>" +
+            '<div class="nss-vault-body">' +
+            '<div class="nss-vault-type">' +
+            esc(DOC_TYPE_LABELS[d.doc_type] || d.doc_type) +
+            "</div>" +
+            '<div class="nss-vault-filename">' +
+            esc(d.display_name || "User #" + d.user_id) +
+            "</div>" +
+            '<div class="nss-vault-meta"><span>' +
+            fmtDate(d.created_at) +
+            "</span></div>" +
+            '<div class="nss-vault-actions">' +
+            '<button class="nss-btn nss-btn-sm" data-id="' +
+            d.id +
+            '" data-action="verified">' +
+            icon("check", "nss-icon-sm") +
+            " Verify</button>" +
+            '<button class="nss-btn nss-btn-sm nss-btn-danger" data-id="' +
+            d.id +
+            '" data-action="rejected">' +
+            icon("x-circle", "nss-icon-sm") +
+            " Reject</button>" +
+            "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        })
+        .join("");
 
-      content.innerHTML =
-        '<div class="nss-tablewrap"><table class="nss-table"><thead><tr><th>User</th><th>Type</th><th>File</th><th>Uploaded</th><th>Action</th></tr></thead><tbody>' +
-        rows +
-        "</tbody></table></div>";
+      content.innerHTML = cards
+        ? '<div class="nss-apps-page-header">' +
+          "<h2>Pending Verification</h2>" +
+          '<span class="nss-apps-count">' + res.items.length + " document" + (res.items.length !== 1 ? "s" : "") + "</span>" +
+          "</div>" +
+          '<div class="nss-vault-grid">' + cards + "</div>"
+        : '<div class="nss-card">' +
+          emptyState("shield-check", "All caught up", "No documents pending verification.") +
+          "</div>";
 
       content.querySelectorAll("[data-action]").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -1460,85 +2447,228 @@ function renderAdminServiceConfig() {
   setTitle("Service Config");
   api("/admin/service-config")
     .then(function (res) {
-      var rows = res.items
-        .map(function (s) {
+      var groups = [];
+      var byLabel = {};
+      res.items.forEach(function (s) {
+        if (!byLabel[s.category_label]) {
+          byLabel[s.category_label] = { label: s.category_label, icon: s.category_icon || "briefcase", items: [] };
+          groups.push(byLabel[s.category_label]);
+        }
+        byLabel[s.category_label].items.push(s);
+      });
+
+      function fieldRowHtml(f) {
+        return (
+          '<div class="nss-fb-row">' +
+          '<div class="nss-fb-cell">' +
+          '<input class="nss-input nss-fb-name" placeholder="Key e.g. loan_amount" value="' + esc(f.name || '') + '"/>' +
+          '</div>' +
+          '<div class="nss-fb-cell">' +
+          '<input class="nss-input nss-fb-label" placeholder="Label for user" value="' + esc(f.label || '') + '"/>' +
+          '</div>' +
+          '<div class="nss-fb-cell nss-fb-cell--type">' +
+          '<select class="nss-select nss-fb-type">' +
+          ['text','number','email','tel','date','select','textarea'].map(function (t) {
+            return '<option value="' + t + '"' + (f.type === t ? ' selected' : '') + '>' + t + '</option>';
+          }).join('') +
+          '</select>' +
+          '</div>' +
+          '<div class="nss-fb-cell nss-fb-cell--req">' +
+          '<label class="nss-switch nss-switch--sm" title="Required">' +
+          '<input type="checkbox" class="nss-fb-required"' + (f.required ? ' checked' : '') + '/><span></span>' +
+          '</label>' +
+          '</div>' +
+          '<button type="button" class="nss-fb-remove" title="Remove field">' + icon('x', 'nss-icon-sm') + '</button>' +
+          '</div>'
+        );
+      }
+
+      function cfgCardHtml(s) {
+        var docChecks = Object.keys(DOC_TYPE_LABELS)
+          .map(function (k) {
+            var on = (s.required_documents || []).indexOf(k) !== -1;
+            return (
+              '<label class="nss-cfg-doc-chip' + (on ? ' on' : '') + '">' +
+              '<input type="checkbox" class="f-doc" value="' + k + '"' + (on ? ' checked' : '') + '/>' +
+              DOC_TYPE_LABELS[k] +
+              '</label>'
+            );
+          })
+          .join('');
+
+        var existingFields = s.fields || [];
+        return (
+          '<div class="nss-cfg-card" data-key="' + esc(s.service_key) + '" data-label="' + esc(String(s.service_label).toLowerCase()) + '">' +
+
+          '<div class="nss-cfg-card-head">' +
+          '<div class="nss-cfg-card-icon">' + icon(serviceIcon(s.service_key, 'briefcase')) + '</div>' +
+          '<div class="nss-cfg-card-title"><strong>' + esc(s.service_label) + '</strong><code>' + esc(s.service_key) + '</code></div>' +
+          '<label class="nss-switch" title="Active \u2014 shown to customers">' +
+          '<input type="checkbox" class="f-active"' + (Number(s.active) ? ' checked' : '') + '/><span></span></label>' +
+          '</div>' +
+
+          '<div class="nss-cfg-grid">' +
+          '<div class="nss-field"><label>Paid Service</label>' +
+          '<label class="nss-switch"><input type="checkbox" class="f-payment"' + (Number(s.payment_required) ? ' checked' : '') + '/><span></span></label></div>' +
+          '<div class="nss-field"><label>Amount (\u20b9)</label>' +
+          '<input class="nss-input f-amount" type="number" step="0.01" min="0" value="' + esc(s.amount) + '"/></div>' +
+          '<div class="nss-field"><label>Workflow</label>' +
+          '<select class="nss-select f-workflow">' +
+          '<option value="manual"' + ('manual' === s.workflow_mode ? ' selected' : '') + '>Manual</option>' +
+          '<option value="api"' + ('api' === s.workflow_mode ? ' selected' : '') + '>API</option>' +
+          '</select></div>' +
+          '<div class="nss-field"><label>API Provider Key</label>' +
+          '<input class="nss-input f-provider" value="' + esc(s.api_provider_key) + '" placeholder="e.g. pan_protean"/></div>' +
+          '</div>' +
+
+          '<div class="nss-field" style="margin-top:12px;"><label>Required Documents</label>' +
+          '<div class="nss-cfg-docs">' + docChecks + '</div></div>' +
+
+          '<div class="nss-field" style="margin-top:16px;">' +
+          '<div class="nss-fb-header">' +
+          '<label>Form Fields</label>' +
+          '<button type="button" class="nss-fb-add nss-btn nss-btn-sm">' + icon('plus', 'nss-icon-sm') + ' Add Field</button>' +
+          '</div>' +
+          '<div class="nss-fb-table">' +
+          '<div class="nss-fb-thead"><span>Key (name)</span><span>Label</span><span>Type</span><span>Req?</span><span></span></div>' +
+          '<div class="nss-fb-body">' +
+          (existingFields.length
+            ? existingFields.map(fieldRowHtml).join('')
+            : '<div class="nss-fb-empty">No fields yet \u2014 click <strong>+ Add Field</strong> to start.</div>') +
+          '</div>' +
+          '</div>' +
+          '</div>' +
+
+          '<div class="nss-cfg-actions">' +
+          '<button class="nss-btn nss-btn-primary nss-btn-sm nss-save-config">' + icon('check', 'nss-icon-sm') + ' Save Changes</button>' +
+          '</div>' +
+          '</div>'
+        );
+      }
+
+      var sectionsHtml = groups
+        .map(function (g, i) {
           return (
-            '<tr data-key="' +
-            esc(s.service_key) +
+            '<div class="nss-cfg-section' +
+            (0 === i ? " open" : "") +
             '">' +
-            "<td>" +
-            esc(s.category_label) +
-            "</td><td>" +
-            esc(s.service_label) +
-            "</td>" +
-            '<td><input type="checkbox" class="f-active" ' +
-            (Number(s.active) ? "checked" : "") +
-            "/></td>" +
-            '<td><input type="checkbox" class="f-payment" ' +
-            (Number(s.payment_required) ? "checked" : "") +
-            "/></td>" +
-            '<td><input class="nss-input f-amount" type="number" step="0.01" value="' +
-            esc(s.amount) +
-            '" style="width:90px;"/></td>' +
-            '<td><select class="nss-select f-workflow" style="width:auto;"><option value="manual"' +
-            ("manual" === s.workflow_mode ? " selected" : "") +
-            '>Manual</option><option value="api"' +
-            ("api" === s.workflow_mode ? " selected" : "") +
-            ">API</option></select></td>" +
-            '<td><input class="nss-input f-provider" value="' +
-            esc(s.api_provider_key) +
-            '" style="width:110px;"/></td>' +
-            '<td><input class="nss-input f-docs" value="' +
-            esc((s.required_documents || []).join(",")) +
-            '" style="width:150px;" title="Comma-separated doc types"/></td>' +
-            '<td><textarea class="nss-input f-fields" rows="2" style="width:220px;font-size:11px;" title="Field schema JSON">' +
-            esc(JSON.stringify(s.fields || [])) +
-            "</textarea></td>" +
-            '<td><button class="nss-btn nss-btn-sm nss-save-config">Save</button></td>' +
-            "</tr>"
+            '<button type="button" class="nss-cfg-section-head">' +
+            '<span class="nss-cfg-section-icon">' + icon(g.icon) + "</span>" +
+            "<strong>" +
+            esc(g.label) +
+            "</strong>" +
+            '<span class="nss-apps-count">' + g.items.length + " services</span>" +
+            '<span class="nss-cfg-caret">' + icon("chevron-right", "nss-icon-sm") + "</span>" +
+            "</button>" +
+            '<div class="nss-cfg-section-body"><div class="nss-cfg-cards">' +
+            g.items.map(cfgCardHtml).join("") +
+            "</div></div>" +
+            "</div>"
           );
         })
         .join("");
 
       content.innerHTML =
-        '<p class="nss-panel-sub">Every field here is stored in the database — adding a brand-new service or changing an existing one never requires a code change.</p>' +
-        '<div class="nss-tablewrap"><table class="nss-table"><thead><tr><th>Category</th><th>Service</th><th>Active</th><th>Paid</th><th>Amount</th><th>Workflow</th><th>Provider</th><th>Required Docs</th><th>Fields JSON</th><th></th></tr></thead><tbody>' +
-        rows +
-        "</tbody></table></div>";
+        '<div class="nss-cfg-toolbar">' +
+        '<p class="nss-panel-sub" style="margin:0;">Every field here is stored in the database — adding or changing a service never requires a code change.</p>' +
+        '<div class="nss-search-wrap" style="margin:0;max-width:320px;">' +
+        icon("search") +
+        '<input type="text" class="nss-search-input" id="nss-cfg-search" placeholder="Find a service…" autocomplete="off"/>' +
+        "</div>" +
+        "</div>" +
+        sectionsHtml;
+
+      content.querySelectorAll(".nss-cfg-section-head").forEach(function (head) {
+        head.addEventListener("click", function () {
+          head.closest(".nss-cfg-section").classList.toggle("open");
+        });
+      });
+
+      document.getElementById("nss-cfg-search").addEventListener("input", function (e) {
+        var q = e.target.value.trim().toLowerCase();
+        content.querySelectorAll(".nss-cfg-section").forEach(function (section) {
+          var any = false;
+          section.querySelectorAll(".nss-cfg-card").forEach(function (card) {
+            var match = !q || card.dataset.label.indexOf(q) !== -1 || card.dataset.key.indexOf(q) !== -1;
+            card.style.display = match ? "" : "none";
+            if (match) any = true;
+          });
+          section.style.display = any ? "" : "none";
+          if (q && any) section.classList.add("open");
+        });
+      });
+
+      // Toggle the visual state of the doc chips as they're checked.
+      content.querySelectorAll(".nss-cfg-doc-chip input").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          cb.closest(".nss-cfg-doc-chip").classList.toggle("on", cb.checked);
+        });
+      });
+
+      // Field builder: Add Field button (delegated)
+      content.addEventListener("click", function (e) {
+        var addBtn = e.target.closest(".nss-fb-add");
+        if (addBtn) {
+          var body = addBtn.closest(".nss-field").querySelector(".nss-fb-body");
+          var empty = body.querySelector(".nss-fb-empty");
+          if (empty) empty.remove();
+          var tmp = document.createElement("div");
+          tmp.innerHTML = fieldRowHtml({ name: "", label: "", type: "text", required: false });
+          body.appendChild(tmp.firstChild);
+          return;
+        }
+        var removeBtn = e.target.closest(".nss-fb-remove");
+        if (removeBtn) {
+          var row = removeBtn.closest(".nss-fb-row");
+          var body2 = row.closest(".nss-fb-body");
+          row.remove();
+          if (!body2.querySelector(".nss-fb-row")) {
+            body2.innerHTML = '<div class="nss-fb-empty">No fields yet — click <strong>+ Add Field</strong> to start.</div>';
+          }
+          return;
+        }
+      });
 
       content.querySelectorAll(".nss-save-config").forEach(function (btn) {
         btn.addEventListener("click", function () {
-          var tr = btn.closest("tr");
-          var fieldsRaw = tr.querySelector(".f-fields").value.trim();
-          var fields;
-          try {
-            fields = fieldsRaw ? JSON.parse(fieldsRaw) : [];
-          } catch (parseErr) {
-            toast("Fields JSON is invalid — fix the syntax and try again.", "err");
-            return;
-          }
+          var card = btn.closest(".nss-cfg-card");
+
+          // Collect fields from the visual field builder rows
+          var fields = [];
+          card.querySelectorAll(".nss-fb-row").forEach(function (row) {
+            var name = row.querySelector(".nss-fb-name").value.trim();
+            var label = row.querySelector(".nss-fb-label").value.trim();
+            var type = row.querySelector(".nss-fb-type").value;
+            var required = row.querySelector(".nss-fb-required").checked;
+            if (name) {
+              fields.push({ name: name, label: label || name, type: type, required: required });
+            }
+          });
+
+          var docs = [];
+          card.querySelectorAll(".f-doc:checked").forEach(function (cb) {
+            docs.push(cb.value);
+          });
           var payload = {
-            active: tr.querySelector(".f-active").checked ? 1 : 0,
-            payment_required: tr.querySelector(".f-payment").checked ? 1 : 0,
-            amount: parseFloat(tr.querySelector(".f-amount").value) || 0,
-            workflow_mode: tr.querySelector(".f-workflow").value,
-            api_provider_key: tr.querySelector(".f-provider").value.trim(),
-            required_documents: tr
-              .querySelector(".f-docs")
-              .value.split(",")
-              .map(function (s) {
-                return s.trim();
-              })
-              .filter(Boolean),
+            active: card.querySelector(".f-active").checked ? 1 : 0,
+            payment_required: card.querySelector(".f-payment").checked ? 1 : 0,
+            amount: parseFloat(card.querySelector(".f-amount").value) || 0,
+            workflow_mode: card.querySelector(".f-workflow").value,
+            api_provider_key: card.querySelector(".f-provider").value.trim(),
+            required_documents: docs,
             fields: fields,
           };
-          api("/admin/service-config/" + tr.dataset.key, "PATCH", payload)
+          btn.disabled = true;
+          api("/admin/service-config/" + card.dataset.key, "PATCH", payload)
             .then(function () {
-              toast("Saved.", "ok");
+              toast(card.querySelector(".nss-cfg-card-title strong").textContent + " saved.", "ok");
               STATE.catalog = null;
             })
             .catch(function (e) {
               toast(e.message, "err");
+            })
+            .finally(function () {
+              btn.disabled = false;
             });
         });
       });
@@ -1574,10 +2704,57 @@ function renderAdminPayments() {
           })
           .join("") ||
         '<tr><td colspan="5" class="nss-empty">No payments yet.</td></tr>';
+
       content.innerHTML =
+        '<div class="nss-two-col">' +
+        '<div>' +
+        '<div class="nss-card nss-panel" style="margin-top:0;">' +
+        '<h2>Payment History</h2>' +
+        '<p class="nss-panel-sub">Recent transaction and application fee history.</p>' +
         '<div class="nss-tablewrap"><table class="nss-table"><thead><tr><th>User</th><th>Order</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>' +
         rows +
-        "</tbody></table></div>";
+        "</tbody></table></div>" +
+        "</div>" +
+        "</div>" +
+        '<div>' +
+        '<div class="nss-card nss-panel" style="margin-top:0;">' +
+        '<h2>Wallet Top-up &amp; Adjust</h2>' +
+        '<p class="nss-panel-sub">Manually credit or debit a user\'s wallet ledger.</p>' +
+        '<form id="nss-admin-wallet-form" class="nss-form-grid" style="display:flex;flex-direction:column;gap:14px;">' +
+        '<div class="nss-field"><label>User ID</label><input class="nss-input" type="number" name="user_id" required placeholder="e.g. 42"/></div>' +
+        '<div class="nss-field"><label>Adjustment Type</label><select class="nss-select" name="type" required><option value="credit">Credit (+) Add Money</option><option value="debit">Debit (-) Deduct Money</option></select></div>' +
+        '<div class="nss-field"><label>Amount (₹)</label><input class="nss-input" type="number" min="0.01" step="0.01" name="amount" required placeholder="e.g. 500"/></div>' +
+        '<div class="nss-field"><label>Note / Reason</label><input class="nss-input" type="text" name="note" required placeholder="e.g. Cash deposit received"/></div>' +
+        '<button class="nss-btn nss-btn-primary nss-btn-block" type="submit" style="margin-top:6px;">' + icon("wallet", "nss-icon-sm") + ' Update Balance</button>' +
+        "</form>" +
+        "</div>" +
+        "</div>" +
+        "</div>";
+
+      var form = document.getElementById("nss-admin-wallet-form");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+
+        var payload = {
+          user_id: parseInt(form.elements["user_id"].value, 10),
+          type: form.elements["type"].value,
+          amount: parseFloat(form.elements["amount"].value),
+          note: form.elements["note"].value,
+        };
+
+        api("/admin/wallet/adjust", "POST", payload)
+          .then(function (res2) {
+            toast(res2.message || "Wallet updated successfully.", "ok");
+            form.reset();
+            renderAdminPayments(); // Refresh list to see the update
+          })
+          .catch(function (err) {
+            toast(err.message, "err");
+            btn.disabled = false;
+          });
+      });
     })
     .catch(function (e) {
       content.innerHTML = errorBox(e);
@@ -1588,17 +2765,52 @@ function renderAdminReports() {
   setTitle("Reports");
   api("/admin/reports")
     .then(function (res) {
-      var statCards = res.by_status
+      var summaryHtml =
+        '<div class="nss-stats">' +
+        '<div class="nss-stat">' +
+        '<div class="nss-stat-label">Total Submissions</div>' +
+        '<div class="nss-stat-value">' + res.total_applications + '</div>' +
+        '<div class="nss-stat-hint">Excludes drafts</div>' +
+        '</div>' +
+        '<div class="nss-stat">' +
+        '<div class="nss-stat-label">Submissions (' + esc(res.month_label) + ')</div>' +
+        '<div class="nss-stat-value">' + res.month_applications + '</div>' +
+        '</div>' +
+        '<div class="nss-stat nss-stat--drafts">' +
+        '<div class="nss-stat-label">WIP Drafts</div>' +
+        '<div class="nss-stat-value">' + res.draft_count + '</div>' +
+        '<div class="nss-stat-hint">Not counted in totals</div>' +
+        '</div>' +
+        '<div class="nss-stat nss-stat--revenue">' +
+        '<div class="nss-stat-label">Total Revenue</div>' +
+        '<div class="nss-stat-value">' + money(res.total_revenue).replace(".00", "") + '</div>' +
+        '</div>' +
+        '<div class="nss-stat nss-stat--revenue">' +
+        '<div class="nss-stat-label">Revenue (' + esc(res.month_label) + ')</div>' +
+        '<div class="nss-stat-value">' + money(res.month_revenue).replace(".00", "") + '</div>' +
+        '</div>' +
+        '</div>';
+
+      var statusCards = res.by_status
         .map(function (r) {
           return (
-            '<div class="nss-stat"><div class="nss-stat-label">' +
-            esc(STATUS_LABELS[r.status] || r.status) +
-            '</div><div class="nss-stat-value">' +
-            r.cnt +
-            "</div></div>"
+            '<div class="nss-stat">' +
+            '<div class="nss-stat-label">' + esc(STATUS_LABELS[r.status] || r.status) + '</div>' +
+            '<div class="nss-stat-value">' + r.cnt + '</div>' +
+            '</div>'
           );
         })
-        .join("");
+        .join("") || '<div class="nss-empty">No status details yet.</div>';
+
+      var statusBreakdownHtml = 
+        '<div class="nss-card nss-panel" style="margin-top:20px;">' +
+        '<h2>Submissions by Status</h2>' +
+        '<p class="nss-panel-sub">Volume breakdown of submitted applications.</p>' +
+        '<div class="nss-stats" style="margin-top:14px;grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">' +
+        statusCards +
+        '</div>' +
+        '</div>';
+
       var svcRows =
         res.by_service
           .map(function (r) {
@@ -1606,22 +2818,26 @@ function renderAdminReports() {
             return (
               "<tr><td>" +
               esc(found ? found.service.service_label : r.service_key) +
-              "</td><td>" +
+              "</td><td><strong>" +
               r.cnt +
-              "</td></tr>"
+              "</strong></td></tr>"
             );
           })
           .join("") ||
         '<tr><td colspan="2" class="nss-empty">No applications yet.</td></tr>';
-      content.innerHTML =
-        '<div class="nss-stats">' +
-        statCards +
-        '<div class="nss-stat"><div class="nss-stat-label">Total Revenue</div><div class="nss-stat-value">' +
-        money(res.total_revenue) +
-        "</div></div></div>" +
-        '<div class="nss-tablewrap"><table class="nss-table"><thead><tr><th>Service</th><th>Applications</th></tr></thead><tbody>' +
+
+      var serviceBreakdownHtml = 
+        '<div class="nss-card nss-panel" style="margin-top:20px;">' +
+        '<h2>Submissions by Service Type</h2>' +
+        '<p class="nss-panel-sub">Top 20 services sorted by application volume.</p>' +
+        '<div class="nss-tablewrap" style="margin-top:12px;">' +
+        '<table class="nss-table"><thead><tr><th>Service</th><th>Applications</th></tr></thead><tbody>' +
         svcRows +
-        "</tbody></table></div>";
+        "</tbody></table>" +
+        "</div>" +
+        "</div>";
+
+      content.innerHTML = summaryHtml + statusBreakdownHtml + serviceBreakdownHtml;
     })
     .catch(function (e) {
       content.innerHTML = errorBox(e);

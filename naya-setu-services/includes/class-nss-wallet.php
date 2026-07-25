@@ -53,6 +53,55 @@ class NSS_Wallet
 		return $balance;
 	}
 
+	/** Latest wallet ledger entries for a user (newest first). */
+	public static function transactions($user_id, $limit = 50)
+	{
+		if (class_exists('NSC_Wallet') && method_exists('NSC_Wallet', 'transactions')) {
+			return NSC_Wallet::transactions($user_id, $limit);
+		}
+		if (!self::table_exists()) {
+			return array();
+		}
+		global $wpdb;
+		$table = self::table();
+		return $wpdb->get_results(
+			$wpdb->prepare("SELECT * FROM {$table} WHERE user_id = %d ORDER BY id DESC LIMIT %d", (int) $user_id, (int) $limit),
+			ARRAY_A
+		);
+	}
+
+	/** @return float|WP_Error New balance on success. */
+	public static function credit($user_id, $amount, $ref_type = 'nss_topup', $ref_id = 0, $note = '')
+	{
+		if ($amount <= 0) {
+			return new WP_Error('nss_bad_amount', 'Amount must be greater than zero.');
+		}
+		if (class_exists('NSC_Wallet') && method_exists('NSC_Wallet', 'credit')) {
+			return NSC_Wallet::credit($user_id, $amount, $ref_type, $ref_id, $note);
+		}
+		if (!self::table_exists()) {
+			return new WP_Error('nss_wallet_unavailable', 'Wallet is not available on this site yet.');
+		}
+		$balance = round(self::balance($user_id) + $amount, 2);
+
+		global $wpdb;
+		$wpdb->insert(
+			self::table(),
+			array(
+				'user_id' => $user_id,
+				'type' => 'credit',
+				'amount' => round($amount, 2),
+				'balance_after' => $balance,
+				'ref_type' => $ref_type,
+				'ref_id' => (int) $ref_id,
+				'note' => $note,
+				'created_at' => current_time('mysql'),
+			)
+		);
+		update_user_meta($user_id, 'nsc_wallet_balance', $balance);
+		return $balance;
+	}
+
 	/** @return float|WP_Error New balance on success. */
 	public static function debit($user_id, $amount, $ref_type = 'nss_application', $ref_id = 0, $note = '')
 	{

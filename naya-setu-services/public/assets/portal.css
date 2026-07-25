@@ -4,9 +4,11 @@ body.nss-fullpage {
   padding: 0 !important;
   background: #f7f5f3 !important;
 }
-body.nss-fullpage > * {
+
+body.nss-fullpage>* {
   margin: 0 !important;
 }
+
 .nss-app {
   width: 100%;
   --nss-red: #bb0b0b;
@@ -36,6 +38,7 @@ body.nss-fullpage > * {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
+
 /*
  * The active WordPress theme (e.g. a block theme like Twenty Twenty-Five)
  * injects its own global font-size/line-height/letter-spacing straight onto
@@ -51,22 +54,26 @@ body.nss-fullpage > * {
   line-height: inherit;
   letter-spacing: inherit;
 }
+
 .nss-icon {
   width: 16px;
   height: 16px;
   flex: none;
   vertical-align: -3px;
 }
+
 .nss-icon-lg {
   width: 22px;
   height: 22px;
   vertical-align: -5px;
 }
+
 .nss-icon-sm {
   width: 13px;
   height: 13px;
   vertical-align: -2px;
 }
+
 .nss-app h1,
 .nss-app h2,
 .nss-app h3,
@@ -74,12 +81,15 @@ body.nss-fullpage > * {
   font-family: inherit;
   margin: 0;
 }
+
 .nss-app a {
   color: var(--nss-red);
 }
+
 .nss-app a.nss-btn {
   color: var(--nss-dark);
 }
+
 .nss-app a.nss-btn-primary {
   color: #fff;
 }
@@ -90,6 +100,7 @@ body.nss-fullpage > * {
   grid-template-columns: 250px 1fr;
   min-height: 100vh;
 }
+
 .nss-sidebar {
   background: var(--nss-dark);
   color: #fff;
@@ -99,35 +110,41 @@ body.nss-fullpage > * {
   gap: 4px;
   overflow-y: auto;
 }
+
 .nss-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 0 10px 20px;
 }
+
 .nss-brand-logo {
   width: 42px;
   height: 42px;
   object-fit: contain;
   flex: none;
 }
+
 .nss-brand-name {
   font-weight: 700;
   font-size: 15px;
   line-height: 1.2;
 }
+
 .nss-brand-name small {
   display: block;
   font-weight: 400;
   font-size: 11px;
   color: #9aa2af;
 }
+
 .nss-nav {
   display: flex;
   flex-direction: column;
   gap: 2px;
   margin-top: 6px;
 }
+
 .nss-nav-group-label {
   font-size: 10.5px;
   text-transform: uppercase;
@@ -136,6 +153,7 @@ body.nss-fullpage > * {
   font-weight: 700;
   margin: 14px 12px 6px;
 }
+
 .nss-nav a {
   display: flex;
   align-items: center;
@@ -148,10 +166,12 @@ body.nss-fullpage > * {
   font-weight: 500;
   transition: all 0.15s ease;
 }
+
 .nss-nav a:hover {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
+
 .nss-nav a.active {
   background: var(--nss-red);
   color: #fff;
@@ -163,6 +183,7 @@ body.nss-fullpage > * {
   flex-direction: column;
   min-width: 0;
 }
+
 .nss-topbar {
   display: flex;
   align-items: center;
@@ -174,15 +195,18 @@ body.nss-fullpage > * {
   top: 0;
   z-index: 20;
 }
+
 .nss-topbar-title {
   font-size: 18px;
   font-weight: 700;
 }
+
 .nss-topbar-right {
   display: flex;
   align-items: center;
   gap: 14px;
 }
+
 .nss-user-pill {
   display: flex;
   align-items: center;
@@ -190,6 +214,7 @@ body.nss-fullpage > * {
   font-size: 13px;
   color: var(--nss-gray);
 }
+
 .nss-user-avatar {
   width: 30px;
   height: 30px;
@@ -202,10 +227,12 @@ body.nss-fullpage > * {
   font-weight: 700;
   font-size: 12px;
 }
+
 .nss-content {
   padding: 24px 26px 60px;
   flex: 1;
 }
+
 /* Login/Sign Up fields are plain stacked .nss-field divs (not inside
    .nss-form-grid, which supplies its own gap) — without this, consecutive
    fields (e.g. User Type select -> Email/Mobile) render with zero space
@@ -214,6 +241,7 @@ body.nss-fullpage > * {
 .nss-auth-form .nss-field {
   margin-bottom: 14px;
 }
+
 .nss-menu-toggle {
   display: none;
   border: none;
@@ -222,13 +250,16 @@ body.nss-fullpage > * {
   color: var(--nss-dark);
   padding: 6px;
 }
+
 .nss-menu-toggle .nss-icon {
   width: 20px;
   height: 20px;
 }
+
 .nss-sidebar-overlay {
   display: none;
 }
+
 @media (max-width: 960px) {
   .nss-sidebar-overlay.open {
     display: block;
@@ -243,6 +274,7 @@ body.nss-fullpage > * {
   .nss-shell {
     grid-template-columns: 1fr;
   }
+
   .nss-sidebar {
     position: fixed;
     left: -260px;
@@ -252,9 +284,11 @@ body.nss-fullpage > * {
     z-index: 100;
     transition: left 0.2s ease;
   }
+
   .nss-sidebar.open {
     left: 0;
   }
+
   .nss-menu-toggle {
     display: inline-flex !important;
   }
@@ -279,43 +313,53 @@ body.nss-fullpage > * {
   transition: all 0.15s ease;
   font-family: inherit;
 }
+
 .nss-btn:hover {
   background: var(--nss-bg);
 }
+
 .nss-btn-primary {
   background: var(--nss-red);
   border-color: var(--nss-red);
   color: #fff;
   box-shadow: 0 4px 14px rgba(187, 11, 11, 0.28);
 }
+
 .nss-btn-primary:hover {
   background: var(--nss-red-dark);
   border-color: var(--nss-red-dark);
   color: #fff;
 }
+
 .nss-btn-primary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
 .nss-btn-ghost {
   background: transparent;
   border-color: transparent;
 }
+
 .nss-btn-ghost:hover {
   background: var(--nss-bg);
 }
+
 .nss-btn-sm {
   padding: 7px 12px;
   font-size: 12.5px;
   border-radius: 8px;
 }
+
 .nss-btn-danger {
   color: #b91c1c;
   border-color: #fca5a5;
 }
+
 .nss-btn-danger:hover {
   background: #fef2f2;
 }
+
 .nss-btn-block {
   width: 100%;
 }
@@ -327,25 +371,30 @@ body.nss-fullpage > * {
   border-radius: 16px;
   box-shadow: var(--nss-shadow-md);
 }
+
 .nss-panel {
   padding: 22px;
 }
+
 .nss-panel h2 {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 4px;
 }
+
 .nss-panel-sub {
   color: var(--nss-gray);
   font-size: 12.5px;
   margin: 0 0 18px;
 }
+
 .nss-stats {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 14px;
   margin-bottom: 22px;
 }
+
 .nss-stat {
   background: #fff;
   border: 1px solid var(--nss-line);
@@ -354,6 +403,7 @@ body.nss-fullpage > * {
   box-shadow: var(--nss-shadow-sm);
   border-left: 4px solid var(--nss-red);
 }
+
 .nss-stat-label {
   font-size: 11px;
   text-transform: uppercase;
@@ -361,11 +411,13 @@ body.nss-fullpage > * {
   color: var(--nss-gray);
   font-weight: 700;
 }
+
 .nss-stat-value {
   font-size: 26px;
   font-weight: 800;
   margin-top: 6px;
 }
+
 @media (max-width: 960px) {
   .nss-stats {
     grid-template-columns: repeat(2, 1fr);
@@ -380,6 +432,7 @@ body.nss-fullpage > * {
   gap: 16px;
   margin-bottom: 22px;
 }
+
 .nss-cat-card,
 .nss-svc-card {
   background: #fff;
@@ -400,6 +453,7 @@ body.nss-fullpage > * {
   position: relative;
   min-height: 160px;
 }
+
 .nss-cat-card:hover,
 .nss-svc-card:hover {
   background: linear-gradient(180deg, #fff 0%, var(--nss-red-tint) 160%);
@@ -407,10 +461,12 @@ body.nss-fullpage > * {
   transform: translateY(-3px);
   box-shadow: var(--nss-shadow-md);
 }
+
 .nss-cat-card:active,
 .nss-svc-card:active {
   transform: translateY(-1px);
 }
+
 .nss-cat-card .nss-card-arrow,
 .nss-svc-card .nss-card-arrow {
   position: absolute;
@@ -421,12 +477,14 @@ body.nss-fullpage > * {
   transform: translateX(-3px);
   transition: all 0.18s ease;
 }
+
 .nss-cat-card:hover .nss-card-arrow,
 .nss-svc-card:hover .nss-card-arrow {
   opacity: 1;
   transform: translateX(0);
   color: var(--nss-red);
 }
+
 .nss-icon-badge {
   width: 52px;
   height: 52px;
@@ -439,27 +497,32 @@ body.nss-fullpage > * {
   margin-bottom: 12px;
   transition: all 0.18s ease;
 }
+
 .nss-cat-card:hover .nss-icon-badge,
 .nss-svc-card:hover .nss-icon-badge {
   background: var(--nss-red);
   color: #fff;
 }
+
 .nss-icon-badge svg {
   width: 24px;
   height: 24px;
 }
+
 .nss-cat-card .nss-cat-name,
 .nss-svc-card .nss-svc-name {
   font-weight: 700;
   font-size: 13.5px;
   line-height: 1.35;
 }
+
 .nss-cat-card .nss-cat-desc {
   font-size: 11.5px;
   color: var(--nss-gray);
   margin-top: 4px;
   line-height: 1.4;
 }
+
 .nss-cat-card .nss-cat-count {
   font-size: 10.5px;
   color: var(--nss-gray-light);
@@ -468,6 +531,45 @@ body.nss-fullpage > * {
   letter-spacing: 0.04em;
   font-weight: 700;
 }
+
+/* ---------- Large Categories Page Card Styles ---------- */
+.nss-cat-grid--large {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.nss-cat-card--large {
+  min-height: 220px;
+  padding: 32px 24px;
+  text-align: left;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.nss-cat-card--large .nss-icon-badge {
+  margin-bottom: 18px;
+}
+
+.nss-cat-card--large .nss-cat-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--nss-dark);
+}
+
+.nss-cat-card--large .nss-cat-desc {
+  font-size: 12.5px;
+  margin-top: 6px;
+  line-height: 1.5;
+  color: var(--nss-gray);
+  flex-grow: 1;
+}
+
+.nss-cat-card--large .nss-cat-count {
+  margin-top: 16px;
+}
+
+
 .nss-section-heading {
   font-size: 13px;
   font-weight: 700;
@@ -475,11 +577,46 @@ body.nss-fullpage > * {
   margin: 0 0 14px;
   padding-top: 6px;
 }
+
 .nss-section-heading:not(:first-child) {
   margin-top: 30px;
   padding-top: 18px;
   border-top: 1px solid var(--nss-line);
 }
+
+.nss-section-heading--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nss-section-heading--row span {
+  flex: 1;
+}
+
+.nss-section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nss-red);
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: var(--nss-red-tint);
+  transition: background 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.nss-section-link:hover {
+  background: #f9d5d5;
+  transform: translateX(2px);
+  color: var(--nss-red-dark);
+}
+
 .nss-svc-card.is-hidden {
   display: none;
 }
@@ -490,6 +627,7 @@ body.nss-fullpage > * {
   margin-bottom: 22px;
   max-width: 480px;
 }
+
 .nss-search-wrap .nss-icon {
   position: absolute;
   left: 14px;
@@ -497,6 +635,7 @@ body.nss-fullpage > * {
   transform: translateY(-50%);
   color: var(--nss-gray-light);
 }
+
 .nss-search-input {
   width: 100%;
   border: 1.5px solid var(--nss-line);
@@ -507,16 +646,19 @@ body.nss-fullpage > * {
   background: #fff;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
 .nss-search-input:focus {
   outline: none;
   border-color: var(--nss-red);
   box-shadow: 0 0 0 3px rgba(187, 11, 11, 0.12);
 }
+
 .nss-search-results-label {
   font-size: 12.5px;
   color: var(--nss-gray);
   margin-bottom: 12px;
 }
+
 .nss-breadcrumb {
   display: flex;
   align-items: center;
@@ -526,17 +668,21 @@ body.nss-fullpage > * {
   margin-bottom: 18px;
   flex-wrap: wrap;
 }
+
 .nss-breadcrumb a {
   color: var(--nss-gray);
   text-decoration: none;
   font-weight: 600;
 }
+
 .nss-breadcrumb a:hover {
   color: var(--nss-red);
 }
+
 .nss-breadcrumb .sep {
   color: var(--nss-gray-light);
 }
+
 .nss-breadcrumb .current {
   color: var(--nss-dark);
   font-weight: 700;
@@ -551,12 +697,14 @@ body.nss-fullpage > * {
   flex-wrap: wrap;
   gap: 12px;
 }
+
 .nss-steps {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
 }
+
 .nss-step {
   display: flex;
   align-items: center;
@@ -567,6 +715,7 @@ body.nss-fullpage > * {
   font-weight: 600;
   color: var(--nss-gray-light);
 }
+
 .nss-step-num {
   width: 24px;
   height: 24px;
@@ -580,15 +729,19 @@ body.nss-fullpage > * {
   font-weight: 700;
   flex: none;
 }
+
 .nss-step.done .nss-step-num {
   background: var(--nss-green);
 }
+
 .nss-step.active {
   color: var(--nss-dark);
 }
+
 .nss-step.active .nss-step-num {
   background: var(--nss-red);
 }
+
 .nss-step-sep {
   width: 16px;
   height: 1px;
@@ -601,22 +754,27 @@ body.nss-fullpage > * {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px 20px;
 }
+
 .nss-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
+
 .nss-field.span-2 {
   grid-column: span 2;
 }
+
 .nss-field label {
   font-size: 12px;
   font-weight: 700;
   color: var(--nss-gray);
 }
+
 .nss-field label .req {
   color: var(--nss-red);
 }
+
 .nss-input,
 .nss-select,
 textarea.nss-input {
@@ -632,12 +790,14 @@ textarea.nss-input {
     border-color 0.15s ease,
     box-shadow 0.15s ease;
 }
+
 .nss-input:focus,
 .nss-select:focus {
   outline: none;
   border-color: var(--nss-red);
   box-shadow: 0 0 0 3px rgba(187, 11, 11, 0.12);
 }
+
 .nss-checkbox {
   display: flex;
   align-items: center;
@@ -645,21 +805,25 @@ textarea.nss-input {
   font-size: 13px;
   color: var(--nss-dark);
 }
+
 .nss-checkbox input {
   accent-color: var(--nss-red);
   width: 16px;
   height: 16px;
 }
+
 .nss-help {
   font-size: 11.5px;
   color: var(--nss-gray-light);
   margin-top: 3px;
 }
+
 .nss-error-text {
   color: #b91c1c;
   font-size: 12px;
   margin-top: 8px;
 }
+
 .nss-field-hint {
   font-size: 11.5px;
   color: var(--nss-gray-light);
@@ -673,17 +837,20 @@ textarea.nss-input {
   padding: 16px 18px;
   margin-bottom: 20px;
 }
+
 .nss-autofill-box h3 {
   font-size: 13px;
   color: var(--nss-red-dark);
   margin-bottom: 10px;
 }
+
 .nss-autofill-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 10px 16px;
   font-size: 12.5px;
 }
+
 .nss-autofill-grid div span {
   display: block;
   color: var(--nss-gray);
@@ -692,6 +859,7 @@ textarea.nss-input {
   letter-spacing: 0.04em;
   margin-bottom: 2px;
 }
+
 .nss-autofill-incomplete {
   color: var(--nss-amber);
   font-size: 12px;
@@ -707,24 +875,29 @@ textarea.nss-input {
   border-bottom: 1px solid var(--nss-line);
   font-size: 13.5px;
 }
+
 .nss-payment-row span {
   color: var(--nss-gray);
 }
+
 .nss-payment-row .nss-discount {
   color: var(--nss-green);
 }
+
 .nss-payment-total {
   border-bottom: none;
   padding-top: 14px;
   margin-top: 4px;
   border-top: 2px solid var(--nss-dark);
 }
+
 .nss-payment-total span,
 .nss-payment-total strong {
   font-size: 15px;
   font-weight: 800;
   color: var(--nss-dark);
 }
+
 .nss-wallet-box {
   display: flex;
   align-items: center;
@@ -736,6 +909,7 @@ textarea.nss-input {
   font-size: 13px;
   font-weight: 600;
 }
+
 .nss-wallet-box strong {
   font-size: 17px;
   color: var(--nss-red);
@@ -748,39 +922,81 @@ textarea.nss-input {
   gap: 12px;
   margin-bottom: 16px;
 }
+
 .nss-doc-card {
   border: 1.5px dashed var(--nss-line);
   border-radius: 12px;
-  padding: 16px 14px;
+  padding: 20px 14px;
   font-size: 12.5px;
   text-align: center;
   background: var(--nss-bg);
   transition: border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 190px;
+  gap: 8px;
 }
+
 .nss-doc-card:hover {
   border-color: var(--nss-gray-light);
 }
+
 .nss-doc-card.have {
   border-style: solid;
   border-color: var(--nss-green);
   background: #f0fdf4;
 }
+
 .nss-doc-card .nss-doc-icon {
   color: var(--nss-gray-light);
-  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .nss-doc-card.have .nss-doc-icon {
   color: var(--nss-green);
 }
+
 .nss-doc-card .nss-doc-type {
   font-weight: 700;
-  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .nss-doc-card input[type="file"] {
-  font-size: 11px;
-  margin-top: 8px;
+  font-size: 0;
+  /* Hides the native "No file chosen" text */
   width: 100%;
+  cursor: pointer;
+  outline: none;
 }
+
+.nss-doc-card input[type="file"]::file-selector-button {
+  border: 1px solid var(--nss-line);
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #fff;
+  color: var(--nss-dark);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--nss-shadow-sm);
+}
+
+.nss-doc-card input[type="file"]:hover::file-selector-button {
+  background-color: var(--nss-bg);
+  border-color: var(--nss-gray-light);
+}
+
+
+
 
 /* ---------- Empty states ---------- */
 .nss-empty-state {
@@ -789,12 +1005,14 @@ textarea.nss-input {
   padding: 50px 20px;
   font-size: 13px;
 }
+
 .nss-empty-state .nss-icon {
   width: 34px;
   height: 34px;
   color: var(--nss-gray-light);
   margin-bottom: 12px;
 }
+
 .nss-empty-state strong {
   display: block;
   color: var(--nss-dark);
@@ -812,8 +1030,11 @@ textarea.nss-input {
   margin: 0 auto 14px;
   animation: nss-spin 0.7s linear infinite;
 }
+
 @keyframes nss-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---------- Status badges / timeline ---------- */
@@ -824,26 +1045,32 @@ textarea.nss-input {
   font-size: 10.5px;
   font-weight: 700;
 }
+
 .nss-status-draft {
   background: #f1f5f9;
   color: #475569;
 }
+
 .nss-status-submitted {
   background: #eff6ff;
   color: #1d4ed8;
 }
+
 .nss-status-in_progress {
   background: #fffbeb;
   color: #b45309;
 }
+
 .nss-status-pending_user {
   background: #fef3c7;
   color: #92400e;
 }
+
 .nss-status-completed {
   background: #ecfdf5;
   color: #15803d;
 }
+
 .nss-status-rejected {
   background: #fef2f2;
   color: #b91c1c;
@@ -854,12 +1081,14 @@ textarea.nss-input {
   margin: 0;
   padding: 0;
 }
+
 .nss-timeline li {
   display: flex;
   gap: 12px;
   padding: 0 0 18px;
   position: relative;
 }
+
 .nss-timeline li:before {
   content: "";
   width: 10px;
@@ -869,6 +1098,7 @@ textarea.nss-input {
   margin-top: 4px;
   flex: none;
 }
+
 .nss-timeline li:not(:last-child):after {
   content: "";
   position: absolute;
@@ -878,10 +1108,12 @@ textarea.nss-input {
   width: 1px;
   background: var(--nss-line);
 }
+
 .nss-timeline .t-status {
   font-weight: 700;
   font-size: 13px;
 }
+
 .nss-timeline .t-meta {
   font-size: 11.5px;
   color: var(--nss-gray);
@@ -895,11 +1127,13 @@ textarea.nss-input {
   overflow: auto;
   box-shadow: var(--nss-shadow-sm);
 }
+
 .nss-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
+
 .nss-table thead th {
   background: var(--nss-bg);
   text-align: left;
@@ -910,17 +1144,21 @@ textarea.nss-input {
   color: var(--nss-gray);
   white-space: nowrap;
 }
+
 .nss-table tbody td {
   padding: 11px 14px;
   border-bottom: 1px solid var(--nss-line);
   vertical-align: middle;
 }
+
 .nss-table tbody tr:last-child td {
   border-bottom: none;
 }
+
 .nss-table tbody tr:hover {
   background: #fbfafa;
 }
+
 .nss-empty {
   text-align: center;
   color: var(--nss-gray);
@@ -936,6 +1174,7 @@ textarea.nss-input {
   border-bottom: 1px solid var(--nss-line);
   flex-wrap: wrap;
 }
+
 .nss-tab-btn {
   padding: 10px 16px;
   border: none;
@@ -947,6 +1186,7 @@ textarea.nss-input {
   border-bottom: 2px solid transparent;
   font-family: inherit;
 }
+
 .nss-tab-btn.active,
 .nss-tab-btn:hover {
   color: var(--nss-red);
@@ -959,6 +1199,7 @@ textarea.nss-input {
   gap: 20px;
   align-items: start;
 }
+
 @media (max-width: 960px) {
   .nss-two-col {
     grid-template-columns: 1fr;
@@ -973,6 +1214,7 @@ textarea.nss-input {
   background: var(--nss-bg);
   color: var(--nss-gray);
 }
+
 .nss-badge-on {
   background: #ecfdf5;
   color: #15803d;
@@ -990,6 +1232,7 @@ textarea.nss-input {
   gap: 10px;
   align-items: center;
 }
+
 .nss-toast {
   display: flex;
   align-items: center;
@@ -1003,35 +1246,43 @@ textarea.nss-input {
   box-shadow: var(--nss-shadow-lg);
   animation: nss-toast-in 0.25s ease;
 }
+
 .nss-toast.nss-toast-out {
   animation: nss-toast-out 0.2s ease forwards;
 }
+
 .nss-toast .nss-icon {
   width: 20px;
   height: 20px;
   flex: none;
 }
+
 .nss-toast-ok {
   background: var(--nss-green, #16a34a);
 }
+
 .nss-toast-err {
   background: #dc2626;
 }
+
 @keyframes nss-toast-in {
   from {
     opacity: 0;
     transform: translateY(-14px) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
+
 @keyframes nss-toast-out {
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+
   to {
     opacity: 0;
     transform: translateY(-10px) scale(0.96);
@@ -1044,6 +1295,7 @@ textarea.nss-input {
   color: var(--nss-gray);
   font-size: 13px;
 }
+
 .nss-loading .nss-spinner {
   margin-bottom: 16px;
 }
@@ -1056,6 +1308,7 @@ textarea.nss-input {
   justify-content: center;
   padding: 30px 16px;
 }
+
 .nss-auth-card {
   background: #fff;
   border-radius: 20px;
@@ -1063,12 +1316,14 @@ textarea.nss-input {
   padding: 30px 28px;
   width: 100%;
 }
+
 .nss-auth-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 22px;
 }
+
 .nss-auth-tabs {
   display: flex;
   background: var(--nss-bg);
@@ -1077,6 +1332,7 @@ textarea.nss-input {
   gap: 4px;
   margin-bottom: 20px;
 }
+
 .nss-auth-tab {
   flex: 1;
   text-align: center;
@@ -1087,8 +1343,1438 @@ textarea.nss-input {
   color: var(--nss-gray);
   cursor: pointer;
 }
+
 .nss-auth-tab.active {
   background: #fff;
   color: var(--nss-red);
   box-shadow: var(--nss-shadow-sm);
+}
+
+/* ---------- Dashboard Stats Cards ---------- */
+.nss-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.nss-stat-card {
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--nss-shadow-sm);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nss-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--nss-shadow-md);
+}
+
+.nss-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+}
+
+.nss-stat-card:nth-child(1) .nss-stat-icon {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+}
+
+.nss-stat-card:nth-child(2) .nss-stat-icon {
+  background: rgba(219, 39, 119, 0.08);
+  color: #db2777;
+}
+
+.nss-stat-card:nth-child(3) .nss-stat-icon {
+  background: rgba(5, 150, 105, 0.08);
+  color: #059669;
+}
+
+.nss-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nss-stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--nss-dark);
+  line-height: 1.1;
+}
+
+.nss-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--nss-gray);
+  letter-spacing: 0.06em;
+}
+
+.nss-stat-card--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.nss-stat-card--link:hover {
+  border-color: #059669;
+  color: inherit;
+}
+
+.nss-stat-cta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--nss-green);
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: rgba(22, 163, 74, 0.1);
+  border-radius: 8px;
+  align-self: flex-start;
+  transition: background 0.15s ease;
+}
+
+.nss-stat-card--link:hover .nss-stat-cta {
+  background: rgba(22, 163, 74, 0.18);
+}
+
+/* ---------- Parallel Columns Layout ---------- */
+.nss-form-layout-cols {
+  display: flex;
+  gap: 26px;
+  align-items: flex-start;
+  margin-top: 14px;
+}
+
+.nss-form-main-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nss-form-side-col {
+  width: 380px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 90px;
+  z-index: 10;
+}
+
+@media (max-width: 1024px) {
+  .nss-form-layout-cols {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nss-form-side-col {
+    width: 100%;
+    position: static;
+  }
+}
+
+/* ---------- Form Section Headers ---------- */
+.nss-form-section-header {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--nss-red);
+  letter-spacing: 0.08em;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--nss-red-tint);
+  padding-bottom: 6px;
+}
+
+.nss-form-main-col .nss-card.nss-panel {
+  margin-top: 0;
+}
+
+/* ---------- Visual Stepper Tracking ---------- */
+.nss-stepper {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 24px;
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 16px;
+  border: 1px solid var(--nss-line);
+  box-shadow: var(--nss-shadow-sm);
+  overflow: hidden;
+}
+
+.nss-stepper::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  left: 50px;
+  right: 50px;
+  height: 4px;
+  background: var(--nss-line);
+  z-index: 1;
+}
+
+.nss-stepper-progress {
+  position: absolute;
+  top: 36px;
+  left: 50px;
+  height: 4px;
+  background: var(--nss-green);
+  z-index: 1;
+  transition: width 0.4s ease;
+}
+
+.nss-step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 0 12px;
+}
+
+.nss-step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--nss-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--nss-gray-light);
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.nss-step.active .nss-step-dot {
+  border-color: var(--nss-red);
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+}
+
+.nss-step.completed .nss-step-dot {
+  border-color: var(--nss-green);
+  background: var(--nss-green);
+  color: #fff;
+}
+
+.nss-step.rejected .nss-step-dot {
+  border-color: var(--nss-red);
+  background: var(--nss-red);
+  color: #fff;
+}
+
+.nss-step-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--nss-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nss-step.active .nss-step-label {
+  color: var(--nss-red);
+}
+
+.nss-step.completed .nss-step-label {
+  color: var(--nss-green);
+}
+
+.nss-step.rejected .nss-step-label {
+  color: var(--nss-red);
+}
+
+/* ---------- Application Cards (My Applications / Admin All Applications) ---------- */
+.nss-apps-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.nss-apps-page-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--nss-dark);
+  margin: 0;
+}
+
+.nss-apps-count {
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.nss-app-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Base card */
+.nss-app-card {
+  background: #fff;
+  border: 1.5px solid var(--nss-line);
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--nss-shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.nss-app-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--nss-shadow-md);
+  border-color: #d1c9f0;
+}
+
+/* Draft variant */
+.nss-app-card--draft {
+  border-color: #e5e7eb;
+  background: #fafafa;
+}
+
+/* Completed variant */
+.nss-app-card--completed {
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+.nss-app-card--completed:hover {
+  border-color: var(--nss-green);
+}
+
+/* Rejected variant */
+.nss-app-card--rejected {
+  border-color: rgba(187, 11, 11, 0.25);
+}
+
+.nss-app-card--rejected:hover {
+  border-color: var(--nss-red);
+}
+
+/* Card header */
+.nss-app-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--nss-line);
+}
+
+.nss-app-card__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nss-app-card__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nss-app-card__title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.nss-app-card__service {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nss-dark);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.nss-app-card__no {
+  font-size: 11.5px;
+  color: var(--nss-gray);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Meta row */
+.nss-app-card__meta {
+  display: flex;
+  gap: 18px;
+  padding: 12px 20px;
+  flex-wrap: wrap;
+}
+
+.nss-app-card__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--nss-gray);
+  font-weight: 500;
+}
+
+.nss-app-card__meta-item svg {
+  width: 13px;
+  height: 13px;
+  color: var(--nss-gray-light);
+}
+
+/* Footer */
+.nss-app-card__footer {
+  padding: 12px 20px 18px;
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Admin controls row */
+.nss-app-card__admin-controls {
+  padding: 12px 20px 18px;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--nss-line);
+}
+
+.nss-app-card__status-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nss-app-card__status-wrap .nss-select {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  padding: 7px 10px;
+}
+
+/* Admin card color tint */
+.nss-app-card--admin .nss-app-card__icon {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+}
+
+@media (max-width: 640px) {
+  .nss-app-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Document vault grid & preview styles ---------- */
+.nss-vault-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.nss-vault-card {
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--nss-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nss-vault-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--nss-shadow-md);
+}
+
+.nss-vault-preview {
+  display: block;
+  height: 140px;
+  background: #f1f5f9;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--nss-line);
+}
+
+.nss-vault-view {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(20, 23, 28, 0.7);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nss-vault-preview:hover .nss-vault-view {
+  opacity: 1;
+}
+
+.nss-vault-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.nss-vault-type {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--nss-dark);
+}
+
+.nss-vault-filename {
+  font-size: 11.5px;
+  color: var(--nss-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nss-vault-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--nss-gray-light);
+  margin-top: 4px;
+}
+
+.nss-vault-card .nss-btn-danger {
+  margin-top: auto;
+  width: 100%;
+}
+
+/* Constrain previews and images in uploads and application details */
+.nss-doc-preview {
+  display: block;
+  width: 100%;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  margin-bottom: 8px;
+}
+
+.nss-doc-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nss-doc-thumb--pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 10.5px;
+  gap: 4px;
+  background: #fef2f2;
+}
+
+.nss-doc-thumb--pdf svg {
+  width: 24px;
+  height: 24px;
+}
+
+.nss-doc-localpreview {
+  margin-top: 8px;
+}
+
+.nss-doc-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.nss-doc-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 7px;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  line-height: 1.4;
+}
+
+.nss-doc-clear:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.nss-doc-clear svg {
+  width: 12px;
+  height: 12px;
+}
+
+.nss-doc-card.picked {
+  border-style: solid;
+  border-color: var(--nss-green);
+  background: #f0fdf4;
+}
+
+.nss-doc-card.picked .nss-doc-icon,
+.nss-doc-card.picked input[type="file"],
+.nss-doc-card.have .nss-doc-icon,
+.nss-doc-card.have input[type="file"] {
+  display: none !important;
+}
+
+.nss-doc-filename {
+  font-size: 11px;
+  color: var(--nss-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 4px 0;
+  max-width: 100%;
+}
+
+/* ---------- Toggle Switch ---------- */
+.nss-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.nss-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.nss-switch span {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--nss-line);
+  transition: .2s;
+  border-radius: 24px;
+}
+
+.nss-switch span:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.nss-switch input:checked+span {
+  background-color: var(--nss-green);
+}
+
+.nss-switch input:checked+span:before {
+  transform: translateX(20px);
+}
+
+.nss-switch input.f-payment:checked+span {
+  background-color: var(--nss-red);
+}
+
+/* ---------- Service Config Page ---------- */
+.nss-cfg-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  background: #fff;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--nss-line);
+  box-shadow: var(--nss-shadow-sm);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.nss-cfg-section {
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  box-shadow: var(--nss-shadow-sm);
+  overflow: hidden;
+}
+
+.nss-cfg-section-head {
+  width: 100%;
+  padding: 18px 24px;
+  background: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 15px;
+  transition: background 0.15s ease;
+}
+
+.nss-cfg-section-head:hover {
+  background: var(--nss-bg);
+}
+
+.nss-cfg-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nss-cfg-section-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nss-cfg-section-head strong {
+  flex: 1;
+  color: var(--nss-dark);
+}
+
+.nss-cfg-caret {
+  color: var(--nss-gray-light);
+  transition: transform 0.25s ease;
+}
+
+.nss-cfg-section.open .nss-cfg-caret {
+  transform: rotate(90deg);
+  color: var(--nss-red);
+}
+
+.nss-cfg-section-body {
+  display: none;
+  border-top: 1px solid var(--nss-line);
+  background: var(--nss-bg);
+  padding: 20px;
+}
+
+.nss-cfg-section.open .nss-cfg-section-body {
+  display: block;
+}
+
+.nss-cfg-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nss-cfg-card {
+  background: #fff;
+  border: 1px solid var(--nss-line);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--nss-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nss-cfg-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--nss-line);
+  padding-bottom: 12px;
+}
+
+.nss-cfg-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: var(--nss-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nss-cfg-card-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.nss-cfg-card-title {
+  flex: 1;
+}
+
+.nss-cfg-card-title strong {
+  display: block;
+  font-size: 14px;
+  color: var(--nss-dark);
+}
+
+.nss-cfg-card-title code {
+  font-size: 11px;
+  color: var(--nss-gray);
+  background: var(--nss-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.nss-cfg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.nss-cfg-docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.nss-cfg-doc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--nss-bg);
+  border: 1px solid var(--nss-line);
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.nss-cfg-doc-chip:hover {
+  background: #eaeaea;
+}
+
+.nss-cfg-doc-chip input {
+  display: none;
+}
+
+.nss-cfg-doc-chip.on {
+  background: var(--nss-red-tint);
+  border-color: #f6cccc;
+  color: var(--nss-red-dark);
+  font-weight: 600;
+}
+
+.nss-cfg-advanced {
+  background: #f8fafc;
+  border: 1px solid var(--nss-line);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.nss-cfg-advanced summary {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nss-gray);
+  cursor: pointer;
+}
+
+.nss-cfg-advanced textarea {
+  margin-top: 8px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.nss-cfg-actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--nss-line);
+  padding-top: 12px;
+}
+
+/* ---------- Form Field Builder (Admin Service Config) ---------- */
+.nss-fb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.nss-fb-header label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--nss-dark);
+  margin: 0;
+}
+
+.nss-fb-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--nss-red);
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.nss-fb-add:hover {
+  background: #f9d5d5;
+}
+
+.nss-fb-table {
+  border: 1px solid var(--nss-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.nss-fb-thead {
+  display: grid;
+  grid-template-columns: 1fr 1fr 110px 54px 32px;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--nss-bg);
+  border-bottom: 1px solid var(--nss-line);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nss-gray);
+}
+
+.nss-fb-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.nss-fb-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 110px 54px 32px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--nss-line);
+  background: #fff;
+  transition: background 0.12s ease;
+}
+
+.nss-fb-row:last-child {
+  border-bottom: none;
+}
+
+.nss-fb-row:hover {
+  background: #fafafa;
+}
+
+.nss-fb-cell {
+  min-width: 0;
+}
+
+.nss-fb-cell .nss-input,
+.nss-fb-cell .nss-select {
+  padding: 7px 10px;
+  font-size: 12.5px;
+  border-radius: 7px;
+}
+
+.nss-fb-cell--req {
+  display: flex;
+  justify-content: center;
+}
+
+.nss-fb-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  padding: 0;
+}
+
+.nss-fb-remove:hover {
+  background: #fee2e2;
+}
+
+.nss-fb-remove svg {
+  width: 13px;
+  height: 13px;
+}
+
+.nss-fb-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--nss-gray);
+  background: var(--nss-bg);
+}
+
+.nss-switch--sm {
+  width: 36px;
+  height: 20px;
+}
+
+.nss-switch--sm span:before {
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+}
+
+.nss-switch--sm input:checked+span:before {
+  transform: translateX(16px);
+}
+
+@media (max-width: 680px) {
+
+  .nss-fb-thead,
+  .nss-fb-row {
+    grid-template-columns: 1fr 1fr 80px 44px 28px;
+    gap: 6px;
+    padding: 8px;
+  }
+}
+
+
+/* ---------- Reports Page Styles ---------- */
+.nss-stat--drafts {
+  border-left: 4px solid var(--nss-amber) !important;
+}
+
+.nss-stat--drafts .nss-stat-value {
+  color: var(--nss-amber);
+}
+
+.nss-stat--revenue {
+  border-left: 4px solid var(--nss-green) !important;
+}
+
+.nss-stat--revenue .nss-stat-value {
+  color: var(--nss-green);
+}
+
+.nss-stat-hint {
+  font-size: 11px;
+  color: var(--nss-gray-light);
+  margin-top: 2px;
+}
+
+/* ---------- Card Left Border Accents based on status ---------- */
+.nss-app-card {
+  border-left: 4px solid var(--nss-line) !important;
+}
+
+.nss-app-card--draft {
+  border-left-color: var(--nss-gray-light) !important;
+}
+
+.nss-app-card:has(.nss-status-submitted) {
+  border-left-color: #3b82f6 !important;
+}
+
+.nss-app-card:has(.nss-status-in_progress),
+.nss-app-card:has(.nss-status-pending_user) {
+  border-left-color: var(--nss-amber) !important;
+}
+
+.nss-app-card--completed {
+  border-left-color: var(--nss-green) !important;
+}
+
+.nss-app-card--rejected {
+  border-left-color: var(--nss-red) !important;
+}
+
+/* ---------- My Recent Applications list ---------- */
+.nss-recent-list {
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 0;
+}
+
+.nss-recent-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--nss-line);
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.nss-recent-row:last-child {
+  border-bottom: none;
+}
+
+.nss-recent-row:hover {
+  background: var(--nss-bg);
+}
+
+.nss-recent-row:hover .nss-btn {
+  background: var(--nss-dark);
+  color: #fff;
+}
+
+.nss-recent-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--nss-red-tint);
+  color: var(--nss-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nss-recent-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nss-recent-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.nss-recent-service {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--nss-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nss-recent-no {
+  font-size: 11.5px;
+  color: var(--nss-gray);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nss-recent-row .nss-status-pill {
+  flex-shrink: 0;
+}
+
+.nss-recent-row .nss-btn {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: var(--nss-bg);
+  border: 1px solid var(--nss-line);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+@media (max-width: 540px) {
+  .nss-recent-row .nss-btn {
+    display: none;
+  }
+
+  .nss-recent-row .nss-status-pill {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+}
+
+/* ================================================================
+   MY WALLET PAGE
+   ================================================================ */
+
+/* Two-column layout: main (left) + side panel (right) */
+.nss-wallet-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .nss-wallet-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Hero balance card ─────────────────────────────────────────── */
+.nss-wallet-hero {
+  background: linear-gradient(135deg, var(--nss-red) 0%, #c0392b 100%);
+  border-radius: 20px;
+  padding: 36px 32px 32px;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(192, 57, 43, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.nss-wallet-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nss-wallet-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -30px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nss-wallet-hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  margin: 0 auto 16px;
+}
+
+.nss-wallet-hero-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: #fff;
+}
+
+.nss-wallet-hero-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+
+.nss-wallet-hero-amount {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.nss-wallet-hero-sub {
+  font-size: 12.5px;
+  opacity: 0.75;
+  max-width: 340px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ── Transaction rows ──────────────────────────────────────────── */
+.nss-tx-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--nss-line);
+}
+
+.nss-tx-row:last-child {
+  border-bottom: none;
+}
+
+.nss-tx-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nss-tx-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nss-tx-icon--credit {
+  background: rgba(39, 174, 96, 0.12);
+}
+
+.nss-tx-icon--credit svg {
+  stroke: #27ae60;
+}
+
+.nss-tx-icon--debit {
+  background: rgba(192, 57, 43, 0.10);
+}
+
+.nss-tx-icon--debit svg {
+  stroke: var(--nss-red);
+}
+
+.nss-tx-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.nss-tx-note {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--nss-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nss-tx-date {
+  font-size: 11.5px;
+  color: var(--nss-gray);
+  margin-top: 2px;
+}
+
+.nss-tx-amounts {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.nss-tx-amount {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.nss-tx-amount--credit {
+  color: #27ae60;
+}
+
+.nss-tx-amount--debit {
+  color: var(--nss-red);
+}
+
+.nss-tx-balance {
+  font-size: 11.5px;
+  color: var(--nss-gray);
+  margin-top: 2px;
+}
+
+/* ── Add Money side panel ──────────────────────────────────────── */
+.nss-wallet-side {
+  position: sticky;
+  top: 80px;
+}
+
+.nss-topup-chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nss-topup-chip {
+  padding: 10px 8px;
+  border: 1.5px solid var(--nss-line);
+  border-radius: 10px;
+  background: var(--nss-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nss-dark);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+}
+
+.nss-topup-chip:hover {
+  border-color: var(--nss-red);
+  color: var(--nss-red);
+  background: rgba(192, 57, 43, 0.06);
+}
+
+.nss-topup-chip.active {
+  border-color: var(--nss-red);
+  background: var(--nss-red);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.28);
+}
+
+.nss-help {
+  font-size: 12px;
+  color: var(--nss-gray);
+  line-height: 1.5;
 }

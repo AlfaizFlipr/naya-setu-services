@@ -20,6 +20,8 @@ class NSS_Plugin
 	{
 		add_action('init', array($this, 'register_shortcodes'));
 		add_action('rest_api_init', array($this, 'register_rest'));
+		add_action('rest_api_init', array($this, 'start_rest_output_buffer'), 1);
+		add_filter('rest_pre_serve_request', array($this, 'clean_rest_output_buffer'), 1);
 		add_action('wp_login', array('NSS_Associate', 'track_login'), 10, 2);
 
 		new NSS_Portal();
@@ -33,5 +35,18 @@ class NSS_Plugin
 	public function register_rest()
 	{
 		(new NSS_Rest())->register();
+	}
+
+	public function start_rest_output_buffer()
+	{
+		ob_start();
+	}
+
+	public function clean_rest_output_buffer($served)
+	{
+		if (ob_get_level() > 0) {
+			ob_clean();
+		}
+		return $served;
 	}
 }

@@ -24,12 +24,14 @@ $show_admin_group = $can_manage_apps || $can_verify_docs || $can_manage_config |
 			</div>
 			<nav class="nss-nav" id="nss-nav">
 				<a href="#dashboard" data-route="dashboard"><?php echo NSS_Icons::get('dashboard'); ?> Dashboard</a>
+				<a href="#categories" data-route="categories"><?php echo NSS_Icons::get('folder'); ?> Browse Categories</a>
 
 				<div class="nss-nav-group-label">My Account</div>
 				<a href="#applications" data-route="applications"><?php echo NSS_Icons::get('file-text'); ?> My
 					Applications</a>
 				<a href="#documents" data-route="documents"><?php echo NSS_Icons::get('folder'); ?> My Documents</a>
 				<a href="#profile" data-route="profile"><?php echo NSS_Icons::get('user'); ?> My Profile</a>
+				<a href="#wallet" data-route="wallet"><?php echo NSS_Icons::get('wallet'); ?> My Wallet</a>
 				<a href="#notifications" data-route="notifications"><?php echo NSS_Icons::get('bell'); ?>
 					Notifications</a>
 				<a href="#payments" data-route="payments"><?php echo NSS_Icons::get('receipt'); ?> Payment History</a>

@@ -28,6 +28,12 @@ class NSS_Rest
 			array('methods' => 'POST', 'callback' => array($this, 'profile_update'), 'permission_callback' => array($this, 'require_login')),
 		));
 
+		register_rest_route(self::NS, '/dashboard-stats', array(
+			'methods' => 'GET',
+			'callback' => array($this, 'dashboard_stats'),
+			'permission_callback' => array($this, 'require_login'),
+		));
+
 		register_rest_route(self::NS, '/documents', array(
 			array('methods' => 'GET', 'callback' => array($this, 'documents_list'), 'permission_callback' => array($this, 'require_login')),
 			array('methods' => 'POST', 'callback' => array($this, 'documents_upload'), 'permission_callback' => array($this, 'require_login')),
@@ -85,6 +91,21 @@ class NSS_Rest
 		register_rest_route(self::NS, '/wallet', array(
 			'methods' => 'GET',
 			'callback' => array($this, 'wallet_get'),
+			'permission_callback' => array($this, 'require_login'),
+		));
+		register_rest_route(self::NS, '/wallet/transactions', array(
+			'methods' => 'GET',
+			'callback' => array($this, 'wallet_transactions'),
+			'permission_callback' => array($this, 'require_login'),
+		));
+		register_rest_route(self::NS, '/wallet/topup-order', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'wallet_topup_order'),
+			'permission_callback' => array($this, 'require_login'),
+		));
+		register_rest_route(self::NS, '/wallet/topup-verify', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'wallet_topup_verify'),
 			'permission_callback' => array($this, 'require_login'),
 		));
 
@@ -173,6 +194,11 @@ class NSS_Rest
 			'callback' => array($this, 'admin_associate_reject'),
 			'permission_callback' => array($this, 'require_settings'),
 		));
+		register_rest_route(self::NS, '/admin/wallet/adjust', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'admin_wallet_adjust'),
+			'permission_callback' => array($this, 'require_settings'),
+		));
 
 		register_rest_route(self::NS, '/settings', array(
 			array('methods' => 'GET', 'callback' => array($this, 'settings_get'), 'permission_callback' => array($this, 'require_settings')),
@@ -227,7 +253,12 @@ class NSS_Rest
 	protected function own_application($id)
 	{
 		$app = NSS_Application::get((int) $id);
-		if (!$app || (int) $app['user_id'] !== get_current_user_id()) {
+		if (!$app) {
+			return new WP_Error('nss_not_found', 'Application not found.');
+		}
+		$user_id = get_current_user_id();
+		$can_manage_apps = user_can($user_id, 'nss_manage_applications') || user_can($user_id, 'nss_view_all_applications');
+		if ((int) $app['user_id'] !== $user_id && !$can_manage_apps) {
 			return new WP_Error('nss_not_found', 'Application not found.');
 		}
 		return $app;
@@ -251,6 +282,35 @@ class NSS_Rest
 	{
 		$body = $req->get_json_params();
 		return $this->ok(array('profile' => NSS_Profile::update(get_current_user_id(), (array) $body)));
+	}
+
+	public function dashboard_stats()
+	{
+		global $wpdb;
+		$user_id = get_current_user_id();
+		$table_apps = $wpdb->prefix . 'nss_applications';
+		
+		$is_admin = user_can($user_id, 'nss_manage_applications') || user_can($user_id, 'nss_view_all_applications');
+		
+		$start_of_month = date('Y-m-01 00:00:00');
+		$month_name = date('F');
+		
+		if ($is_admin) {
+			$total_apps = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_apps} WHERE status != %s", 'draft'));
+			$month_apps = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_apps} WHERE status != %s AND created_at >= %s", 'draft', $start_of_month));
+		} else {
+			$total_apps = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_apps} WHERE user_id = %d AND status != %s", $user_id, 'draft'));
+			$month_apps = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_apps} WHERE user_id = %d AND status != %s AND created_at >= %s", $user_id, 'draft', $start_of_month));
+		}
+		
+		$wallet_balance = NSS_Wallet::balance($user_id);
+		
+		return $this->ok(array(
+			'total_applications' => $total_apps,
+			'month_applications' => $month_apps,
+			'month_label' => $month_name,
+			'wallet_balance' => $wallet_balance,
+		));
 	}
 
 	// ---------------------------------------------------------- Documents
@@ -328,10 +388,19 @@ class NSS_Rest
 		if (is_wp_error($app)) {
 			return $this->err($app);
 		}
+		$documents = array();
+		foreach ((array) ($app['document_ids'] ?? array()) as $doc_id) {
+			$doc = NSS_Documents::get((int) $doc_id);
+			if ($doc) {
+				unset($doc['file_path']);
+				$documents[] = $doc;
+			}
+		}
 		return $this->ok(array(
 			'application' => $app,
 			'config' => NSS_Service_Config::get($app['service_key']),
 			'status_log' => NSS_Status_Engine::log_for($app['id']),
+			'documents' => $documents,
 		));
 	}
 
@@ -458,6 +527,92 @@ class NSS_Rest
 	public function wallet_get()
 	{
 		return $this->ok(array('balance' => NSS_Wallet::balance(get_current_user_id()), 'available' => NSS_Wallet::is_available()));
+	}
+
+	public function wallet_transactions()
+	{
+		return $this->ok(array(
+			'balance' => NSS_Wallet::balance(get_current_user_id()),
+			'available' => NSS_Wallet::is_available(),
+			'items' => NSS_Wallet::transactions(get_current_user_id(), 50),
+		));
+	}
+
+	/** Creates a Razorpay order to add money to the shared wallet (no application involved). */
+	public function wallet_topup_order(WP_REST_Request $req)
+	{
+		if (!NSS_Wallet::is_available()) {
+			return $this->err(new WP_Error('nss_wallet_unavailable', 'Wallet is not available on this site yet.'));
+		}
+		$body = (array) $req->get_json_params();
+		$amount = round((float) ($body['amount'] ?? 0), 2);
+		if ($amount < 1) {
+			return $this->err(new WP_Error('nss_bad_amount', 'Enter an amount of at least ₹1.'));
+		}
+		if ($amount > 100000) {
+			return $this->err(new WP_Error('nss_bad_amount', 'Maximum ₹1,00,000 can be added at a time.'));
+		}
+
+		$user_id = get_current_user_id();
+		$order = NSS_Razorpay::create_order($amount, 'nss-wallet-' . $user_id . '-' . time());
+		if (is_wp_error($order)) {
+			return $this->err($order);
+		}
+
+		global $wpdb;
+		$wpdb->insert(
+			$wpdb->prefix . 'nss_payments',
+			array(
+				'user_id' => $user_id,
+				'application_id' => 0,
+				'provider' => 'razorpay',
+				'order_id' => $order['id'],
+				'amount' => $amount,
+				'currency' => $order['currency'],
+				'status' => 'created',
+				'created_at' => current_time('mysql'),
+			)
+		);
+
+		$payments = NSS_Settings::get('payments', array());
+		return $this->ok(array('order' => $order, 'key_id' => $payments['razorpay_key_id'] ?? ''));
+	}
+
+	/** Verifies the Razorpay top-up payment and credits the wallet. */
+	public function wallet_topup_verify(WP_REST_Request $req)
+	{
+		$body = (array) $req->get_json_params();
+		$order_id = sanitize_text_field($body['order_id'] ?? '');
+		$verified = NSS_Razorpay::verify_signature($order_id, $body['payment_id'] ?? '', $body['signature'] ?? '');
+		if (is_wp_error($verified)) {
+			return $this->err($verified);
+		}
+
+		global $wpdb;
+		$payments_table = $wpdb->prefix . 'nss_payments';
+		$user_id = get_current_user_id();
+		$payment = $wpdb->get_row(
+			$wpdb->prepare("SELECT * FROM {$payments_table} WHERE order_id = %s AND user_id = %d", $order_id, $user_id),
+			ARRAY_A
+		);
+		if (!$payment) {
+			return $this->err(new WP_Error('nss_not_found', 'Top-up order not found.'));
+		}
+		if ('paid' === $payment['status']) {
+			return $this->ok(array('balance' => NSS_Wallet::balance($user_id)));
+		}
+
+		$wpdb->update(
+			$payments_table,
+			array('payment_id' => sanitize_text_field($body['payment_id']), 'status' => 'paid'),
+			array('id' => (int) $payment['id'])
+		);
+
+		$balance = NSS_Wallet::credit($user_id, (float) $payment['amount'], 'nss_topup', (int) $payment['id'], 'Wallet top-up via Razorpay');
+		if (is_wp_error($balance)) {
+			return $this->err($balance);
+		}
+		return $this->ok(array('balance' => $balance));
 	}
 
 	public function applications_payment_verify(WP_REST_Request $req)
@@ -641,14 +796,31 @@ class NSS_Rest
 		return $this->ok(array('config' => $config));
 	}
 
+	/** Drafts are unsubmitted work-in-progress — they are reported separately and never counted in totals. */
 	public function admin_reports(WP_REST_Request $req)
 	{
 		global $wpdb;
 		$table = $wpdb->prefix . 'nss_applications';
-		$by_status = $wpdb->get_results("SELECT status, COUNT(*) as cnt FROM {$table} GROUP BY status", ARRAY_A);
-		$by_service = $wpdb->get_results("SELECT service_key, COUNT(*) as cnt FROM {$table} GROUP BY service_key ORDER BY cnt DESC LIMIT 20", ARRAY_A);
-		$revenue = (float) $wpdb->get_var($wpdb->prefix ? "SELECT COALESCE(SUM(amount),0) FROM {$wpdb->prefix}nss_payments WHERE status = 'paid'" : 0);
-		return $this->ok(array('by_status' => $by_status, 'by_service' => $by_service, 'total_revenue' => $revenue));
+		$payments_table = $wpdb->prefix . 'nss_payments';
+
+		$by_status = $wpdb->get_results("SELECT status, COUNT(*) as cnt FROM {$table} WHERE status != 'draft' GROUP BY status", ARRAY_A);
+		$by_service = $wpdb->get_results("SELECT service_key, COUNT(*) as cnt FROM {$table} WHERE status != 'draft' GROUP BY service_key ORDER BY cnt DESC LIMIT 20", ARRAY_A);
+		$total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE status != 'draft'");
+		$drafts = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE status = 'draft'");
+		$month_total = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE status != 'draft' AND created_at >= %s", date('Y-m-01 00:00:00')));
+		$revenue = (float) $wpdb->get_var("SELECT COALESCE(SUM(amount),0) FROM {$payments_table} WHERE status = 'paid'");
+		$month_revenue = (float) $wpdb->get_var($wpdb->prepare("SELECT COALESCE(SUM(amount),0) FROM {$payments_table} WHERE status = 'paid' AND created_at >= %s", date('Y-m-01 00:00:00')));
+
+		return $this->ok(array(
+			'by_status' => $by_status,
+			'by_service' => $by_service,
+			'total_applications' => $total,
+			'month_applications' => $month_total,
+			'month_label' => date('F'),
+			'draft_count' => $drafts,
+			'total_revenue' => $revenue,
+			'month_revenue' => $month_revenue,
+		));
 	}
 
 	public function admin_api_logs(WP_REST_Request $req)
@@ -666,6 +838,46 @@ class NSS_Rest
 			ARRAY_A
 		);
 		return $this->ok(array('items' => $rows));
+	}
+
+	public function admin_wallet_adjust(WP_REST_Request $req)
+	{
+		$body = (array) $req->get_json_params();
+		$target_user_id = (int) ($body['user_id'] ?? 0);
+		$type = sanitize_key($body['type'] ?? 'credit');
+		$amount = round((float) ($body['amount'] ?? 0), 2);
+		$note = sanitize_text_field($body['note'] ?? '');
+
+		if ($target_user_id <= 0) {
+			return $this->err(new WP_Error('nss_invalid_user', 'Invalid User ID.'));
+		}
+
+		$user = get_userdata($target_user_id);
+		if (!$user) {
+			return $this->err(new WP_Error('nss_user_not_found', 'User does not exist.'));
+		}
+
+		if ($amount <= 0) {
+			return $this->err(new WP_Error('nss_bad_amount', 'Amount must be greater than zero.'));
+		}
+
+		if ('credit' === $type) {
+			$result = NSS_Wallet::credit($target_user_id, $amount, 'nss_admin_adjust', get_current_user_id(), $note);
+		} else if ('debit' === $type) {
+			$result = NSS_Wallet::debit($target_user_id, $amount, 'nss_admin_adjust', get_current_user_id(), $note);
+		} else {
+			return $this->err(new WP_Error('nss_bad_type', 'Invalid adjustment type.'));
+		}
+
+		if (is_wp_error($result)) {
+			return $this->err($result);
+		}
+
+		return $this->ok(array(
+			'user_id' => $target_user_id,
+			'new_balance' => $result,
+			'message' => sprintf('Wallet of %s updated successfully.', $user->display_name)
+		));
 	}
 
 	public function admin_associates()
