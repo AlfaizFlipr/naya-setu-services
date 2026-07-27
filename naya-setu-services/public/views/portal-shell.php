@@ -11,6 +11,7 @@ $can_manage_config = user_can($user, 'nss_manage_service_config');
 $can_view_reports = user_can($user, 'nss_view_reports');
 $is_admin = user_can($user, 'nss_manage_settings');
 $show_admin_group = $can_manage_apps || $can_verify_docs || $can_manage_config || $can_view_reports || $is_admin;
+$courier_portal_url = NSS_Settings::get('courier_portal_url', home_url('/courier/'));
 ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <div class="nss-app">
@@ -24,7 +25,8 @@ $show_admin_group = $can_manage_apps || $can_verify_docs || $can_manage_config |
 			</div>
 			<nav class="nss-nav" id="nss-nav">
 				<a href="#dashboard" data-route="dashboard"><?php echo NSS_Icons::get('dashboard'); ?> Dashboard</a>
-				<a href="#categories" data-route="categories"><?php echo NSS_Icons::get('folder'); ?> Browse Categories</a>
+				<a href="#categories" data-route="categories"><?php echo NSS_Icons::get('folder'); ?> Browse
+					Categories</a>
 
 				<div class="nss-nav-group-label">My Account</div>
 				<a href="#applications" data-route="applications"><?php echo NSS_Icons::get('file-text'); ?> My
@@ -75,10 +77,13 @@ $show_admin_group = $can_manage_apps || $can_verify_docs || $can_manage_config |
 					<div class="nss-topbar-title" id="nss-topbar-title">Dashboard</div>
 				</div>
 				<div class="nss-topbar-right">
-
+					<a href="<?php echo esc_url($courier_portal_url); ?>" class="nss-btn nss-btn-sm"
+						title="Switch to the Naya Setu Courier dashboard"><?php echo NSS_Icons::get('package', 'nss-icon-sm'); ?>
+						Naya Setu Courier</a>
 					<div class="nss-user-pill">
 						<div class="nss-user-avatar">
-							<?php echo esc_html(strtoupper(substr($user->display_name, 0, 1))); ?></div>
+							<?php echo esc_html(strtoupper(substr($user->display_name, 0, 1))); ?>
+						</div>
 						<span><?php echo esc_html($user->display_name); ?></span>
 					</div>
 					<a class="nss-btn nss-btn-sm"

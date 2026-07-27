@@ -56,10 +56,22 @@ add_action(
 	function () {
 		load_plugin_textdomain('naya-setu-services', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
-		// Auto-upgrade tables/roles/catalog if the plugin was updated without a fresh activation.
+		// Auto-upgrade tables/roles/catalog if the plugin was updated without a
+		// fresh activation. Deferred to 'init' (priority 20, after WordPress's
+		// own create_initial_post_types() at priority 10) rather than run here
+		// directly — NSS_Install::run() calls get_posts() to auto-detect the
+		// Courier portal page by shortcode, and the 'page' post type isn't
+		// registered yet during plugins_loaded, so that lookup would silently
+		// find nothing and seed the wrong (home URL) default.
 		if (get_option('nss_db_version') !== NSS_DB_VERSION) {
-			require_once NSS_PLUGIN_DIR . 'includes/class-nss-install.php';
-			NSS_Install::run();
+			add_action(
+				'init',
+				function () {
+					require_once NSS_PLUGIN_DIR . 'includes/class-nss-install.php';
+					NSS_Install::run();
+				},
+				20
+			);
 		}
 
 		NSS_Plugin::instance();

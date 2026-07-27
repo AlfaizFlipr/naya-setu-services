@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sL \"http://localhost/nayasetu-services-test/courier/\" -o /tmp/courier_page4.html -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(\"C:/xampp/php/php.exe\" -d error_log=\"C:/xampp/htdocs/nayasetu-services-test/php_debug.log\" debug-detect.php)",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -h 127.0.0.1 -N -e \"SELECT option_name, option_value FROM nayasetu_services_test.wp_options WHERE option_name IN \\('show_on_front','page_on_front','page_for_posts'\\);\")",
+      "Bash(curl -sL \"http://localhost/nayasetu-services-test/\" -o /tmp/home_page.html -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(\"C:/xampp/php/php.exe\" verify-shell.php)",
+      "Bash(\"C:/xampp/php/php.exe\" verify-wallet.php)"
+    ]
+  }
+}

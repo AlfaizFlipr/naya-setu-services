@@ -56,8 +56,8 @@ class NSS_Wallet
 	/** Latest wallet ledger entries for a user (newest first). */
 	public static function transactions($user_id, $limit = 50)
 	{
-		if (class_exists('NSC_Wallet') && method_exists('NSC_Wallet', 'transactions')) {
-			return NSC_Wallet::transactions($user_id, $limit);
+		if (class_exists('NSC_Wallet') && method_exists('NSC_Wallet', 'ledger')) {
+			return NSC_Wallet::ledger($user_id, $limit);
 		}
 		if (!self::table_exists()) {
 			return array();
