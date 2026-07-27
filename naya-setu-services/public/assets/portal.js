@@ -226,6 +226,7 @@ var ICONS = {
     '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
   "x-circle":
     '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
   clock: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   "credit-card":
@@ -2319,7 +2320,7 @@ function renderAdminApplications() {
           '<button class="nss-btn nss-btn-primary nss-btn-sm nss-save-status" data-id="' + a.id + '">' +
           icon("check", "nss-icon-sm") + ' Update</button>' +
           '</div>' +
-          '<a class="nss-btn nss-btn-sm" href="#application/' + a.id + '">' +
+          '<a class="nss-btn nss-btn-sm nss-app-card__view-link" href="#application/' + a.id + '">' +
           icon("chevron-right", "nss-icon-sm") + ' View Detail</a>' +
           '</div>' +
 
@@ -2440,14 +2441,26 @@ function renderAdminServiceConfig() {
   api("/admin/service-config")
     .then(function (res) {
       var groups = [];
-      var byLabel = {};
+      var byKey = {};
       res.items.forEach(function (s) {
-        if (!byLabel[s.category_label]) {
-          byLabel[s.category_label] = { label: s.category_label, icon: s.category_icon || "briefcase", items: [] };
-          groups.push(byLabel[s.category_label]);
+        if (!byKey[s.category_key]) {
+          byKey[s.category_key] = { key: s.category_key, label: s.category_label, icon: s.category_icon || "briefcase", items: [] };
+          groups.push(byKey[s.category_key]);
         }
-        byLabel[s.category_label].items.push(s);
+        byKey[s.category_key].items.push(s);
       });
+
+      var CATEGORY_ICONS = ["briefcase", "id-card", "bank", "car", "scale", "package", "landmark", "laptop", "home", "shield-check", "file-text", "folder", "globe", "heart", "receipt", "wallet", "users", "settings"];
+
+      function iconOptionsHtml(selected) {
+        return CATEGORY_ICONS.map(function (i) {
+          return '<option value="' + i + '"' + (i === selected ? ' selected' : '') + '>' + i + '</option>';
+        }).join('');
+      }
+
+      function slugify(s) {
+        return String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      }
 
       function fieldRowHtml(f) {
         return (
@@ -2493,11 +2506,16 @@ function renderAdminServiceConfig() {
           '<div class="nss-cfg-card" data-key="' + esc(s.service_key) + '" data-label="' + esc(String(s.service_label).toLowerCase()) + '">' +
 
           '<div class="nss-cfg-card-head">' +
-          '<div class="nss-cfg-card-icon">' + icon(serviceIcon(s.service_key, 'briefcase')) + '</div>' +
-          '<div class="nss-cfg-card-title"><strong>' + esc(s.service_label) + '</strong><code>' + esc(s.service_key) + '</code></div>' +
+          '<button type="button" class="nss-cfg-card-toggle">' +
+          '<span class="nss-cfg-card-icon">' + icon(serviceIcon(s.service_key, 'briefcase')) + '</span>' +
+          '<span class="nss-cfg-card-title"><strong>' + esc(s.service_label) + '</strong><code>' + esc(s.service_key) + '</code></span>' +
+          '<span class="nss-cfg-card-caret">' + icon('chevron-right', 'nss-icon-sm') + '</span>' +
+          '</button>' +
           '<label class="nss-switch" title="Active \u2014 shown to customers">' +
           '<input type="checkbox" class="f-active"' + (Number(s.active) ? ' checked' : '') + '/><span></span></label>' +
           '</div>' +
+
+          '<div class="nss-cfg-card-body">' +
 
           '<div class="nss-cfg-grid">' +
           '<div class="nss-field"><label>Paid Service</label>' +
@@ -2532,7 +2550,23 @@ function renderAdminServiceConfig() {
           '</div>' +
 
           '<div class="nss-cfg-actions">' +
+          '<button class="nss-btn nss-btn-sm nss-btn-danger nss-del-config" data-key="' + esc(s.service_key) + '" data-label="' + esc(s.service_label) + '">' + icon('x-circle', 'nss-icon-sm') + ' Delete</button>' +
           '<button class="nss-btn nss-btn-primary nss-btn-sm nss-save-config">' + icon('check', 'nss-icon-sm') + ' Save Changes</button>' +
+          '</div>' +
+
+          '</div>' +
+          '</div>'
+        );
+      }
+
+      function addSubFormHtml(g) {
+        return (
+          '<div class="nss-cfg-inline-form nss-cfg-add-sub-form" data-category="' + esc(g.key) + '" style="display:none;">' +
+          '<div class="nss-field"><label>New subcategory name (under ' + esc(g.label) + ')</label>' +
+          '<input class="nss-input nc-sub-label" type="text" placeholder="e.g. Two Wheeler License"/></div>' +
+          '<div class="nss-cfg-inline-form-actions">' +
+          '<button type="button" class="nss-btn nss-btn-sm nss-cfg-cancel-sub">Cancel</button>' +
+          '<button type="button" class="nss-btn nss-btn-primary nss-btn-sm nss-cfg-create-sub" data-category="' + esc(g.key) + '" data-label="' + esc(g.label) + '" data-icon="' + esc(g.icon) + '">' + icon('plus', 'nss-icon-sm') + ' Add Subcategory</button>' +
           '</div>' +
           '</div>'
         );
@@ -2543,8 +2577,9 @@ function renderAdminServiceConfig() {
           return (
             '<div class="nss-cfg-section' +
             (0 === i ? " open" : "") +
-            '">' +
-            '<button type="button" class="nss-cfg-section-head">' +
+            '" data-category="' + esc(g.key) + '">' +
+            '<div class="nss-cfg-section-head">' +
+            '<button type="button" class="nss-cfg-section-toggle">' +
             '<span class="nss-cfg-section-icon">' + icon(g.icon) + "</span>" +
             "<strong>" +
             esc(g.label) +
@@ -2552,13 +2587,35 @@ function renderAdminServiceConfig() {
             '<span class="nss-apps-count">' + g.items.length + " services</span>" +
             '<span class="nss-cfg-caret">' + icon("chevron-right", "nss-icon-sm") + "</span>" +
             "</button>" +
+            '<div class="nss-cfg-section-tools">' +
+            '<button type="button" class="nss-btn nss-btn-sm nss-cfg-toggle-add-sub" data-category="' + esc(g.key) + '" title="Add subcategory">' + icon('plus', 'nss-icon-sm') + ' Add</button>' +
+            '<button type="button" class="nss-btn nss-btn-sm nss-btn-danger nss-cfg-del-category" data-category="' + esc(g.key) + '" data-label="' + esc(g.label) + '" title="Delete category">' + icon('x-circle', 'nss-icon-sm') + '</button>' +
+            '</div>' +
+            "</div>" +
             '<div class="nss-cfg-section-body"><div class="nss-cfg-cards">' +
+            addSubFormHtml(g) +
             g.items.map(cfgCardHtml).join("") +
             "</div></div>" +
             "</div>"
           );
         })
         .join("");
+
+      var addCategoryFormHtml =
+        '<div class="nss-cfg-inline-form" id="nss-cfg-add-category-form" style="display:none;">' +
+        '<div class="nss-cfg-grid">' +
+        '<div class="nss-field"><label>Category name</label>' +
+        '<input class="nss-input" id="nc-cat-label" type="text" placeholder="e.g. Insurance"/></div>' +
+        '<div class="nss-field"><label>Icon</label>' +
+        '<select class="nss-select" id="nc-cat-icon">' + iconOptionsHtml('briefcase') + '</select></div>' +
+        '<div class="nss-field"><label>First subcategory name</label>' +
+        '<input class="nss-input" id="nc-cat-sub-label" type="text" placeholder="e.g. Vehicle Insurance"/></div>' +
+        '</div>' +
+        '<div class="nss-cfg-inline-form-actions">' +
+        '<button type="button" class="nss-btn nss-btn-sm" id="nss-cfg-cancel-category">Cancel</button>' +
+        '<button type="button" class="nss-btn nss-btn-primary nss-btn-sm" id="nss-cfg-create-category">' + icon('plus', 'nss-icon-sm') + ' Create Category</button>' +
+        '</div>' +
+        '</div>';
 
       content.innerHTML =
         '<div class="nss-cfg-toolbar">' +
@@ -2567,12 +2624,150 @@ function renderAdminServiceConfig() {
         icon("search") +
         '<input type="text" class="nss-search-input" id="nss-cfg-search" placeholder="Find a service…" autocomplete="off"/>' +
         "</div>" +
+        '<button type="button" class="nss-btn nss-btn-primary nss-btn-sm" id="nss-cfg-toggle-add-category">' + icon('plus', 'nss-icon-sm') + ' Add Category</button>' +
         "</div>" +
+        addCategoryFormHtml +
         sectionsHtml;
 
-      content.querySelectorAll(".nss-cfg-section-head").forEach(function (head) {
-        head.addEventListener("click", function () {
-          head.closest(".nss-cfg-section").classList.toggle("open");
+      content.querySelectorAll(".nss-cfg-section-toggle").forEach(function (toggle) {
+        toggle.addEventListener("click", function () {
+          var section = toggle.closest(".nss-cfg-section");
+          var willOpen = !section.classList.contains("open");
+          content.querySelectorAll(".nss-cfg-section.open").forEach(function (s) {
+            s.classList.remove("open");
+          });
+          if (willOpen) section.classList.add("open");
+        });
+      });
+
+      // Subcategory cards: collapsed by default, one open at a time per category.
+      content.querySelectorAll(".nss-cfg-card-toggle").forEach(function (toggle) {
+        toggle.addEventListener("click", function () {
+          var card = toggle.closest(".nss-cfg-card");
+          var cardsWrap = card.closest(".nss-cfg-cards");
+          var willOpen = !card.classList.contains("open");
+          cardsWrap.querySelectorAll(".nss-cfg-card.open").forEach(function (c) {
+            c.classList.remove("open");
+          });
+          if (willOpen) card.classList.add("open");
+        });
+      });
+
+      // ---- Add Category ----
+      var addCatForm = document.getElementById("nss-cfg-add-category-form");
+      document.getElementById("nss-cfg-toggle-add-category").addEventListener("click", function () {
+        addCatForm.style.display = "none" === addCatForm.style.display ? "flex" : "none";
+      });
+      document.getElementById("nss-cfg-cancel-category").addEventListener("click", function () {
+        addCatForm.style.display = "none";
+      });
+      document.getElementById("nss-cfg-create-category").addEventListener("click", function (e) {
+        var catLabel = document.getElementById("nc-cat-label").value.trim();
+        var subLabel = document.getElementById("nc-cat-sub-label").value.trim();
+        var catIcon = document.getElementById("nc-cat-icon").value;
+        if (!catLabel || !subLabel) {
+          toast("Category name and first subcategory name are both required.", "err");
+          return;
+        }
+        var catKey = slugify(catLabel);
+        var subKey = catKey + "_" + slugify(subLabel);
+        e.target.disabled = true;
+        api("/admin/service-config", "POST", {
+          category_key: catKey,
+          category_label: catLabel,
+          category_icon: catIcon,
+          service_key: subKey,
+          service_label: subLabel,
+        })
+          .then(function () {
+            toast("Category created.", "ok");
+            STATE.catalog = null;
+            renderAdminServiceConfig();
+          })
+          .catch(function (err) {
+            toast(err.message, "err");
+            e.target.disabled = false;
+          });
+      });
+
+      // ---- Add Subcategory (per section) ----
+      content.querySelectorAll(".nss-cfg-toggle-add-sub").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var form = content.querySelector('.nss-cfg-add-sub-form[data-category="' + btn.dataset.category + '"]');
+          form.style.display = "none" === form.style.display ? "flex" : "none";
+        });
+      });
+      content.querySelectorAll(".nss-cfg-cancel-sub").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          btn.closest(".nss-cfg-add-sub-form").style.display = "none";
+        });
+      });
+      content.querySelectorAll(".nss-cfg-create-sub").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var form = btn.closest(".nss-cfg-add-sub-form");
+          var subLabel = form.querySelector(".nc-sub-label").value.trim();
+          if (!subLabel) {
+            toast("Subcategory name is required.", "err");
+            return;
+          }
+          var subKey = btn.dataset.category + "_" + slugify(subLabel);
+          btn.disabled = true;
+          api("/admin/service-config", "POST", {
+            category_key: btn.dataset.category,
+            category_label: btn.dataset.label,
+            category_icon: btn.dataset.icon,
+            service_key: subKey,
+            service_label: subLabel,
+          })
+            .then(function () {
+              toast("Subcategory added.", "ok");
+              STATE.catalog = null;
+              renderAdminServiceConfig();
+            })
+            .catch(function (err) {
+              toast(err.message, "err");
+              btn.disabled = false;
+            });
+        });
+      });
+
+      // ---- Delete category ----
+      content.querySelectorAll(".nss-cfg-del-category").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          if (!confirm('Delete category "' + btn.dataset.label + '" and all its subcategories? This cannot be undone.')) {
+            return;
+          }
+          btn.disabled = true;
+          api("/admin/service-config/category/" + btn.dataset.category, "DELETE")
+            .then(function () {
+              toast("Category deleted.", "ok");
+              STATE.catalog = null;
+              renderAdminServiceConfig();
+            })
+            .catch(function (err) {
+              toast(err.message, "err");
+              btn.disabled = false;
+            });
+        });
+      });
+
+      // ---- Delete subcategory (service) ----
+      content.querySelectorAll(".nss-del-config").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          if (!confirm('Delete subcategory "' + btn.dataset.label + '"? This cannot be undone.')) {
+            return;
+          }
+          btn.disabled = true;
+          api("/admin/service-config/" + btn.dataset.key, "DELETE")
+            .then(function () {
+              toast("Subcategory deleted.", "ok");
+              STATE.catalog = null;
+              renderAdminServiceConfig();
+            })
+            .catch(function (err) {
+              toast(err.message, "err");
+              btn.disabled = false;
+            });
         });
       });
 

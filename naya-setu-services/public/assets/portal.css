@@ -1634,8 +1634,8 @@ textarea.nss-input {
 
 .nss-app-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
 }
 
 /* Base card */
@@ -1684,15 +1684,15 @@ textarea.nss-input {
 .nss-app-card__header {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 20px 20px 14px;
+  gap: 16px;
+  padding: 22px 22px 16px;
   border-bottom: 1px solid var(--nss-line);
 }
 
 .nss-app-card__icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   background: var(--nss-red-tint);
   color: var(--nss-red);
   display: flex;
@@ -1702,8 +1702,8 @@ textarea.nss-input {
 }
 
 .nss-app-card__icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .nss-app-card__title-wrap {
@@ -1712,7 +1712,7 @@ textarea.nss-input {
 }
 
 .nss-app-card__service {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--nss-dark);
   line-height: 1.3;
@@ -1732,7 +1732,7 @@ textarea.nss-input {
 .nss-app-card__meta {
   display: flex;
   gap: 18px;
-  padding: 12px 20px;
+  padding: 14px 22px;
   flex-wrap: wrap;
 }
 
@@ -1762,12 +1762,11 @@ textarea.nss-input {
 
 /* Admin controls row */
 .nss-app-card__admin-controls {
-  padding: 12px 20px 18px;
+  padding: 14px 22px 20px;
   margin-top: auto;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
   border-top: 1px solid var(--nss-line);
 }
 
@@ -1775,15 +1774,22 @@ textarea.nss-input {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 .nss-app-card__status-wrap .nss-select {
   flex: 1;
   min-width: 0;
   font-size: 12.5px;
-  padding: 7px 10px;
+  padding: 8px 10px;
+}
+
+.nss-app-card__status-wrap .nss-save-status {
+  flex-shrink: 0;
+}
+
+.nss-app-card__admin-controls .nss-app-card__view-link {
+  width: 100%;
 }
 
 /* Admin card color tint */
@@ -1886,6 +1892,17 @@ textarea.nss-input {
 .nss-vault-card .nss-btn-danger {
   margin-top: auto;
   width: 100%;
+}
+
+.nss-vault-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.nss-vault-actions .nss-btn {
+  flex: 1;
+  width: auto;
 }
 
 /* Constrain previews and images in uploads and application details */
@@ -2064,21 +2081,42 @@ textarea.nss-input {
 
 .nss-cfg-section-head {
   width: 100%;
-  padding: 18px 24px;
+  padding: 10px 12px 10px 24px;
   background: #fff;
   border: none;
   display: flex;
   align-items: center;
-  gap: 14px;
-  cursor: pointer;
-  text-align: left;
+  gap: 10px;
   font-family: inherit;
-  font-size: 15px;
   transition: background 0.15s ease;
 }
 
 .nss-cfg-section-head:hover {
   background: var(--nss-bg);
+}
+
+.nss-cfg-section-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 15px;
+  color: inherit;
+}
+
+.nss-cfg-section-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .nss-cfg-section-icon {
@@ -2133,19 +2171,57 @@ textarea.nss-input {
   background: #fff;
   border: 1px solid var(--nss-line);
   border-radius: 12px;
-  padding: 20px;
   box-shadow: var(--nss-shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  overflow: hidden;
 }
 
 .nss-cfg-card-head {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 14px 16px;
+}
+
+.nss-cfg-card.open .nss-cfg-card-head {
   border-bottom: 1px solid var(--nss-line);
-  padding-bottom: 12px;
+}
+
+.nss-cfg-card-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+}
+
+.nss-cfg-card-caret {
+  color: var(--nss-gray-light);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.nss-cfg-card.open .nss-cfg-card-caret {
+  transform: rotate(90deg);
+  color: var(--nss-red);
+}
+
+.nss-cfg-card-body {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 16px 20px;
+}
+
+.nss-cfg-card.open .nss-cfg-card-body {
+  display: flex;
 }
 
 .nss-cfg-card-icon {
@@ -2157,6 +2233,7 @@ textarea.nss-input {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .nss-cfg-card-icon svg {
@@ -2166,6 +2243,7 @@ textarea.nss-input {
 
 .nss-cfg-card-title {
   flex: 1;
+  min-width: 0;
 }
 
 .nss-cfg-card-title strong {
@@ -2248,9 +2326,31 @@ textarea.nss-input {
 
 .nss-cfg-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   border-top: 1px solid var(--nss-line);
   padding-top: 12px;
+}
+
+/* ---------- Inline add-category / add-subcategory forms ---------- */
+.nss-cfg-inline-form {
+  background: #fff;
+  border: 1px dashed var(--nss-line);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nss-cfg-inline-form .nss-cfg-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.nss-cfg-inline-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 /* ---------- Form Field Builder (Admin Service Config) ---------- */

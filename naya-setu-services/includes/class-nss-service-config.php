@@ -103,6 +103,64 @@ class NSS_Service_Config
 		return self::get($service_key);
 	}
 
+	/**
+	 * Creates a new subcategory (service row) under a category. If the given
+	 * category_key doesn't exist yet, this also creates the category since a
+	 * category has no existence separate from the service rows under it.
+	 */
+	public static function create(array $data)
+	{
+		global $wpdb;
+		$table = $wpdb->prefix . 'nss_service_config';
+
+		$category_key = sanitize_key($data['category_key'] ?? '');
+		$service_key = sanitize_key($data['service_key'] ?? '');
+		if (!$category_key || !$service_key) {
+			return new WP_Error('nss_invalid', 'Category key and service key are required.');
+		}
+		if (self::get($service_key)) {
+			return new WP_Error('nss_duplicate', 'A service with that key already exists.');
+		}
+
+		$next_sort = (int) $wpdb->get_var(
+			$wpdb->prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM ' . $table . ' WHERE category_key = %s', $category_key)
+		);
+
+		$now = current_time('mysql');
+		$wpdb->insert($table, array(
+			'category_key' => $category_key,
+			'category_label' => sanitize_text_field($data['category_label'] ?? $category_key),
+			'category_icon' => sanitize_text_field($data['category_icon'] ?? 'briefcase'),
+			'service_key' => $service_key,
+			'service_label' => sanitize_text_field($data['service_label'] ?? $service_key),
+			'sort_order' => $next_sort,
+			'active' => 1,
+			'payment_required' => 0,
+			'amount' => 0,
+			'workflow_mode' => 'manual',
+			'created_at' => $now,
+			'updated_at' => $now,
+		));
+
+		return self::get($service_key);
+	}
+
+	/** Deletes a single subcategory (service row). */
+	public static function delete($service_key)
+	{
+		global $wpdb;
+		$table = $wpdb->prefix . 'nss_service_config';
+		return false !== $wpdb->delete($table, array('service_key' => sanitize_key($service_key)));
+	}
+
+	/** Deletes an entire category and every subcategory (service) under it. */
+	public static function delete_category($category_key)
+	{
+		global $wpdb;
+		$table = $wpdb->prefix . 'nss_service_config';
+		return false !== $wpdb->delete($table, array('category_key' => sanitize_key($category_key)));
+	}
+
 	protected static function hydrate(array $row)
 	{
 		$row['fields'] = $row['fields_json'] ? (array) json_decode($row['fields_json'], true) : array();

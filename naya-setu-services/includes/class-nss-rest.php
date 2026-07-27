@@ -155,14 +155,33 @@ class NSS_Rest
 			'permission_callback' => array($this, 'require_verify_documents'),
 		));
 		register_rest_route(self::NS, '/admin/service-config', array(
-			'methods' => 'GET',
-			'callback' => array($this, 'admin_service_config_list'),
+			array(
+				'methods' => 'GET',
+				'callback' => array($this, 'admin_service_config_list'),
+				'permission_callback' => array($this, 'require_manage_service_config'),
+			),
+			array(
+				'methods' => 'POST',
+				'callback' => array($this, 'admin_service_config_create'),
+				'permission_callback' => array($this, 'require_manage_service_config'),
+			),
+		));
+		register_rest_route(self::NS, '/admin/service-config/category/(?P<category_key>[\w-]+)', array(
+			'methods' => 'DELETE',
+			'callback' => array($this, 'admin_service_config_delete_category'),
 			'permission_callback' => array($this, 'require_manage_service_config'),
 		));
 		register_rest_route(self::NS, '/admin/service-config/(?P<service_key>[\w-]+)', array(
-			'methods' => 'PATCH',
-			'callback' => array($this, 'admin_service_config_update'),
-			'permission_callback' => array($this, 'require_manage_service_config'),
+			array(
+				'methods' => 'PATCH',
+				'callback' => array($this, 'admin_service_config_update'),
+				'permission_callback' => array($this, 'require_manage_service_config'),
+			),
+			array(
+				'methods' => 'DELETE',
+				'callback' => array($this, 'admin_service_config_delete'),
+				'permission_callback' => array($this, 'require_manage_service_config'),
+			),
 		));
 		register_rest_route(self::NS, '/admin/reports', array(
 			'methods' => 'GET',
@@ -794,6 +813,28 @@ class NSS_Rest
 		$body = (array) $req->get_json_params();
 		$config = NSS_Service_Config::update(sanitize_text_field($req['service_key']), $body);
 		return $this->ok(array('config' => $config));
+	}
+
+	public function admin_service_config_create(WP_REST_Request $req)
+	{
+		$body = (array) $req->get_json_params();
+		$config = NSS_Service_Config::create($body);
+		if (is_wp_error($config)) {
+			return $this->err($config);
+		}
+		return $this->ok(array('config' => $config));
+	}
+
+	public function admin_service_config_delete(WP_REST_Request $req)
+	{
+		NSS_Service_Config::delete(sanitize_text_field($req['service_key']));
+		return $this->ok(array('deleted' => true));
+	}
+
+	public function admin_service_config_delete_category(WP_REST_Request $req)
+	{
+		NSS_Service_Config::delete_category(sanitize_text_field($req['category_key']));
+		return $this->ok(array('deleted' => true));
 	}
 
 	/** Drafts are unsubmitted work-in-progress — they are reported separately and never counted in totals. */
