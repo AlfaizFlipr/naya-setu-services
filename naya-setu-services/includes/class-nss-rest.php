@@ -388,7 +388,18 @@ class NSS_Rest
 	public function applications_list(WP_REST_Request $req)
 	{
 		$status = sanitize_key($req->get_param('status') ?: '');
-		return $this->ok(array('items' => NSS_Application::list_for_user(get_current_user_id(), $status)));
+		$category = sanitize_key($req->get_param('category') ?: '');
+		$per_page = max(1, (int) ($req->get_param('per_page') ?: 50));
+		$items = NSS_Application::list_for_user(get_current_user_id(), $status);
+		if ($category) {
+			$items = array_values(array_filter($items, function($a) use ($category) {
+				return ($a['category_key'] ?? '') === $category;
+			}));
+		}
+		if (count($items) > $per_page) {
+			$items = array_slice($items, 0, $per_page);
+		}
+		return $this->ok(array('applications' => $items, 'items' => $items));
 	}
 
 	public function applications_create(WP_REST_Request $req)
@@ -952,6 +963,8 @@ class NSS_Rest
 		unset($settings['payments']['razorpay_key_secret']);
 		foreach ($settings['providers'] ?? array() as $key => $p) {
 			unset($settings['providers'][$key]['api_secret']);
+			unset($settings['providers'][$key]['module_secret']);
+			unset($settings['providers'][$key]['provider_secret']);
 		}
 		return $this->ok(array('settings' => $settings, 'providers_status' => NSS_Provider_Registry::all_configured()));
 	}
@@ -959,11 +972,26 @@ class NSS_Rest
 	public function settings_update(WP_REST_Request $req)
 	{
 		$body = (array) $req->get_json_params();
-		foreach (array('courier_portal_url', 'payments', 'notify', 'providers') as $key) {
+		foreach (array('courier_portal_url', 'payments', 'notify') as $key) {
 			if (isset($body[$key])) {
 				NSS_Settings::update($key, is_array($body[$key]) ? $body[$key] : sanitize_text_field($body[$key]));
 			}
 		}
-		return $this->ok(array('settings' => NSS_Settings::all()));
+		if (isset($body['providers']) && is_array($body['providers'])) {
+			$allowed = array('enabled', 'api_key', 'api_secret', 'module_secret', 'provider_secret', 'base_url', 'token_path', 'quote_payload_templates');
+			foreach ($body['providers'] as $key => $provider) {
+				if (!is_array($provider) || !in_array($key, array('pan_protean', 'pan_uti', 'gst_api', 'ckyc', 'penny_drop', 'decentro_banking', 'sandbox', 'turtlefin_insurance'), true)) {
+					continue;
+				}
+				$clean = array();
+				foreach ($allowed as $field) {
+					if (array_key_exists($field, $provider)) {
+						$clean[$field] = 'enabled' === $field ? !empty($provider[$field]) : sanitize_text_field($provider[$field]);
+					}
+				}
+				NSS_Settings::update_provider($key, $clean);
+			}
+		}
+		return $this->settings_get();
 	}
 }

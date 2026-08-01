@@ -19,6 +19,9 @@ class NSS_Provider_Registry
 		'gst_api' => 'NSS_Provider_Gst',
 		'ckyc' => 'NSS_Provider_Ckyc',
 		'penny_drop' => 'NSS_Provider_Penny_Drop',
+		'decentro_banking' => 'NSS_Provider_Decentro_Banking',
+		'sandbox' => 'NSS_Provider_Sandbox',
+		'turtlefin_insurance' => 'NSS_Provider_Turtlefin_Insurance',
 	);
 
 	/** @return NSS_Provider_Interface */

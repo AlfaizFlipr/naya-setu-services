@@ -12,6 +12,7 @@ class NSS_Install
 		self::register_roles();
 		self::seed_settings();
 		self::seed_service_catalog();
+		self::migrate_provider_bindings();
 		update_option('nss_db_version', NSS_DB_VERSION);
 	}
 
@@ -290,6 +291,18 @@ class NSS_Install
 		}
 	}
 
+	/** Move only the legacy default bindings; administrator custom bindings remain untouched. */
+	protected static function migrate_provider_bindings()
+	{
+		global $wpdb;
+		$table = $wpdb->prefix . 'nss_service_config';
+		$now = current_time('mysql');
+		$wpdb->query($wpdb->prepare("UPDATE {$table} SET api_provider_key = %s, workflow_mode = 'api', updated_at = %s WHERE service_key IN ('account_verification', 'penny_drop_verification') AND api_provider_key = 'penny_drop'", 'decentro_banking', $now));
+		$wpdb->query($wpdb->prepare("UPDATE {$table} SET api_provider_key = %s, workflow_mode = 'api', updated_at = %s WHERE service_key IN ('insurance_life', 'insurance_health', 'insurance_vehicle', 'insurance_term') AND api_provider_key = ''", 'turtlefin_insurance', $now));
+		$wpdb->query($wpdb->prepare("UPDATE {$table} SET api_provider_key = %s, workflow_mode = 'api', updated_at = %s WHERE service_key = 'insurance_health' AND api_provider_key = 'turtlefin_insurance'", 'turtlefin_insurance', $now));
+		$wpdb->query($wpdb->prepare("UPDATE {$table} SET api_provider_key = '', workflow_mode = 'manual', updated_at = %s WHERE service_key IN ('insurance_life', 'insurance_term') AND api_provider_key = 'turtlefin_insurance'", $now));
+	}
+
 	public static function seed_settings()
 	{
 		$defaults = array(
@@ -311,6 +324,21 @@ class NSS_Install
 				'gst_api' => array('enabled' => 0, 'label' => 'GST API', 'api_key' => '', 'api_secret' => ''),
 				'ckyc' => array('enabled' => 0, 'label' => 'CKYC', 'api_key' => '', 'api_secret' => ''),
 				'penny_drop' => array('enabled' => 0, 'label' => 'Penny Drop', 'api_key' => '', 'api_secret' => ''),
+				'decentro_banking' => array(
+					'enabled' => 1, 'label' => 'Decentro Banking (Account Validation)',
+					'api_key' => 'GUPTATECHHUBOPCPRIVATELIMITED_6_sop', 'api_secret' => '641d58db208a4c85898078bbf1c506a1',
+					'module_secret' => 'a9cb41b4642446969912dda476b2fe2f', 'provider_secret' => 'bcba42cd416640a3a8b824305adaa9a2',
+					'base_url' => 'https://in.staging.decentro.tech',
+				),
+				'sandbox' => array(
+					'enabled' => 1, 'label' => 'Sandbox.co.in (KYC & Verification)',
+					'api_key' => 'key_live_369581746f694b1696216d1e5b005813', 'api_secret' => 'secret_live_0906cc4d56e6438492285cadf185f47c',
+					'base_url' => 'https://api.sandbox.co.in',
+				),
+				'turtlefin_insurance' => array(
+					'enabled' => 0, 'label' => 'Turtlefin OneAPI (Insurance)', 'api_key' => '', 'api_secret' => '',
+					'base_url' => '', 'token_path' => '/v1/token/issue',
+				),
 			),
 			// Same public client-side Firebase web config already used by naya-setu-courier,
 			// so a phone number verified in either plugin's OTP flow is the same Firebase user.

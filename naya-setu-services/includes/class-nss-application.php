@@ -214,12 +214,40 @@ class NSS_Application
 
 		$config = NSS_Service_Config::get($app['service_key']);
 		$provider = NSS_Provider_Registry::get($config['api_provider_key']);
-		$result = $provider->submit(array('service_key' => $app['service_key'], 'form_data' => $app['form_data'], 'profile' => NSS_Profile::for_user($user_id)));
+		$result = $provider->submit(array('application_id' => $id, 'service_key' => $app['service_key'], 'form_data' => $app['form_data'], 'profile' => NSS_Profile::for_user($user_id)));
 
-		NSS_Logger::log('application-submit', $config['service_label'] . ' -> ' . get_class($provider), array('application_id' => $id, 'result' => is_wp_error($result) ? $result->get_error_message() : $result), is_wp_error($result) ? 'error' : 'info');
+		$log_result = $result;
+		if (is_wp_error($result)) {
+			$log_result = array(
+				'error_code' => $result->get_error_code(),
+				'error_message' => $result->get_error_message(),
+				'error_data' => $result->get_error_data(),
+			);
+		}
+		NSS_Logger::log('application-submit', $config['service_label'] . ' -> ' . get_class($provider), array('application_id' => $id, 'result' => $log_result), is_wp_error($result) ? 'error' : 'info');
+		if (is_wp_error($result)) {
+			// Do not falsely mark a failed provider request as in progress. The submitted
+			// application remains visible to an operator for a safe retry/manual review.
+			return $result;
+		}
 
-		NSS_Status_Engine::transition($id, NSS_Status_Engine::SUBMITTED, NSS_Status_Engine::IN_PROGRESS, '', $user_id);
-		NSS_Notify::status_changed($user_id, $app, NSS_Status_Engine::IN_PROGRESS);
+		$reference = sanitize_text_field($result['reference'] ?? '');
+		$remark = sanitize_text_field($result['remark'] ?? '');
+		if ($reference) {
+			$form_data = !empty($result['form_data']) && is_array($result['form_data']) ? $result['form_data'] : $app['form_data'];
+			$form_data['_provider_reference'] = $reference;
+			$form_data['_provider_name'] = $provider->label();
+			global $wpdb;
+			$wpdb->update($wpdb->prefix . 'nss_applications', array('form_data_json' => wp_json_encode($form_data), 'updated_at' => current_time('mysql')), array('id' => (int) $id));
+		}
+
+		NSS_Status_Engine::transition($id, NSS_Status_Engine::SUBMITTED, NSS_Status_Engine::IN_PROGRESS, $remark, $user_id);
+		if ('completed' === ($result['status'] ?? '')) {
+			NSS_Status_Engine::transition($id, NSS_Status_Engine::IN_PROGRESS, NSS_Status_Engine::COMPLETED, $remark, $user_id);
+			NSS_Notify::status_changed($user_id, $app, NSS_Status_Engine::COMPLETED);
+		} else {
+			NSS_Notify::status_changed($user_id, $app, NSS_Status_Engine::IN_PROGRESS);
+		}
 
 		return self::get($id);
 	}

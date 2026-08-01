@@ -19,7 +19,7 @@ define('NSS_VERSION', '1.0.0');
 define('NSS_PLUGIN_FILE', __FILE__);
 define('NSS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('NSS_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('NSS_DB_VERSION', '1.1.0');
+define('NSS_DB_VERSION', '1.4.0');
 
 spl_autoload_register(
 	function ($class) {

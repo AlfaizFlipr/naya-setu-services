@@ -27,6 +27,7 @@ $courier_portal_url = NSS_Settings::get('courier_portal_url', home_url('/courier
 				<a href="#dashboard" data-route="dashboard"><?php echo NSS_Icons::get('dashboard'); ?> Dashboard</a>
 				<a href="#categories" data-route="categories"><?php echo NSS_Icons::get('folder'); ?> Browse
 					Categories</a>
+				<a href="#verification-hub" data-route="verification-hub"><?php echo NSS_Icons::get('shield-check'); ?> Verification Hub</a>
 
 				<div class="nss-nav-group-label">My Account</div>
 				<a href="#applications" data-route="applications"><?php echo NSS_Icons::get('file-text'); ?> My

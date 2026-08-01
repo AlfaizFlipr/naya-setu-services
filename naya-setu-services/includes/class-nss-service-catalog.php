@@ -549,13 +549,13 @@ class NSS_Service_Catalog
 							'key' => 'account_verification', 'label' => 'Account Verification',
 							'fields' => array(self::fld('account_number', 'Account Number', 'text', true), self::fld('ifsc_code', 'IFSC Code', 'text', true)),
 							'docs' => array(), 'payment_required' => 0, 'amount' => 0,
-							'workflow_mode' => 'api', 'api_provider_key' => 'penny_drop',
+							'workflow_mode' => 'api', 'api_provider_key' => 'decentro_banking',
 						)),
 						self::svc(array(
 							'key' => 'penny_drop_verification', 'label' => 'Penny Drop Verification',
 							'fields' => array(self::fld('account_number', 'Account Number', 'text', true), self::fld('ifsc_code', 'IFSC Code', 'text', true), self::fld('account_holder_name', 'Expected Account Holder Name', 'text', true)),
 							'docs' => array(), 'payment_required' => 0, 'amount' => 0,
-							'workflow_mode' => 'api', 'api_provider_key' => 'penny_drop',
+							'workflow_mode' => 'api', 'api_provider_key' => 'decentro_banking',
 						)),
 					),
 					self::loan_services(),
@@ -689,6 +689,57 @@ class NSS_Service_Catalog
 					self::svc(array('key' => 'digital_vault', 'label' => 'Digital Vault', 'fields' => array(self::fld('vault_purpose', 'Purpose', 'text', false), self::fld('storage_duration_preference', 'Storage Duration Preference', 'select', false, array('1y' => '1 Year', '5y' => '5 Years', 'lifetime' => 'Lifetime'))), 'docs' => array(), 'amount' => 0, 'payment_required' => 0)),
 				),
 			),
+
+			// ============================================================= QUICK VERIFICATIONS
+			'verification_hub' => array(
+				'label' => 'Verification Hub',
+				'icon' => 'shield-check',
+				'services' => array(
+					self::svc(array(
+						'key' => 'aadhaar_check', 'label' => 'Aadhaar Check',
+						'fields' => array(self::fld('aadhaar_number', 'Aadhaar Number To Verify', 'text', true)),
+						'docs' => array(), 'payment_required' => 0, 'amount' => 0,
+						'workflow_mode' => 'api', 'api_provider_key' => 'sandbox',
+					)),
+					self::svc(array(
+						'key' => 'pan_check', 'label' => 'PAN Check',
+						'fields' => array(
+							self::fld('pan_number', 'PAN Number To Verify', 'text', true),
+							self::fld('full_name', 'Full Name as per PAN', 'text', true),
+							self::fld('date_of_birth', 'Date of Birth', 'date', true)
+						),
+						'docs' => array(), 'payment_required' => 0, 'amount' => 0,
+						'workflow_mode' => 'api', 'api_provider_key' => 'sandbox',
+					)),
+					self::svc(array(
+						'key' => 'gst_check', 'label' => 'GST Check',
+						'fields' => array(self::fld('gstin', 'GSTIN Number To Verify', 'text', true)),
+						'docs' => array(), 'payment_required' => 0, 'amount' => 0,
+						'workflow_mode' => 'api', 'api_provider_key' => 'sandbox',
+					)),
+					self::svc(array(
+						'key' => 'company_check', 'label' => 'Company Check',
+						'fields' => array(self::fld('cin', 'Company CIN / LLPIN To Verify', 'text', true)),
+						'docs' => array(), 'payment_required' => 0, 'amount' => 0,
+						'workflow_mode' => 'api', 'api_provider_key' => 'sandbox',
+					)),
+					self::svc(array(
+						'key' => 'bank_check', 'label' => 'Bank Check (Penny Drop)',
+						'fields' => array(
+							self::fld('account_number', 'Account Number To Verify', 'text', true),
+							self::fld('ifsc_code', 'IFSC Code', 'text', true)
+						),
+						'docs' => array(), 'payment_required' => 0, 'amount' => 0,
+						'workflow_mode' => 'api', 'api_provider_key' => 'sandbox',
+					)),
+					self::svc(array(
+						'key' => 'vehicle_check', 'label' => 'Vehicle Check (RC Verification)',
+						'fields' => array(self::fld('registration_number', 'Vehicle Registration Number To Verify', 'text', true)),
+						'docs' => array(), 'payment_required' => 0, 'amount' => 0,
+						'workflow_mode' => 'api', 'api_provider_key' => 'sandbox',
+					)),
+				),
+			),
 		);
 	}
 
@@ -707,13 +758,28 @@ class NSS_Service_Catalog
 
 	protected static function insurance_services()
 	{
+		// Only product keys confirmed in the Turtlefin tenant are wired to OneAPI.
+		// Product-specific quote schemas remain configurable in Settings -> API Providers.
 		$types = array(
-			'insurance_life' => 'Life Insurance', 'insurance_health' => 'Health Insurance',
-			'insurance_vehicle' => 'Vehicle Insurance', 'insurance_term' => 'Term Insurance',
+			'insurance_bike' => array('Bike Insurance', array(self::fld('vehicle_registration_number', 'Bike Registration Number', 'text', true), self::fld('rto_code', 'RTO Code', 'text', true), self::fld('vehicle_make', 'Make', 'text', true), self::fld('vehicle_model', 'Model', 'text', true), self::fld('manufacture_year', 'Manufacture Year', 'number', true))),
+			'insurance_private_car' => array('Private Car Insurance', array(self::fld('vehicle_registration_number', 'Car Registration Number', 'text', true), self::fld('rto_code', 'RTO Code', 'text', true), self::fld('vehicle_make', 'Make', 'text', true), self::fld('vehicle_model', 'Model', 'text', true), self::fld('manufacture_year', 'Manufacture Year', 'number', true))),
+			'insurance_health' => array('Group Hospicash / Health Insurance', self::tpl_insurance()),
+			'insurance_group_personal_accident' => array('Group Personal Accident Insurance', self::tpl_insurance()),
+			'insurance_fire' => array('Fire Insurance', array(self::fld('sum_insured', 'Sum Insured (Rs.)', 'number', true), self::fld('risk_address', 'Risk Address', 'textarea', true), self::fld('property_type', 'Property Type', 'text', true))),
+			'insurance_marine' => array('Marine Insurance', array(self::fld('sum_insured', 'Cargo Value (Rs.)', 'number', true), self::fld('cargo_description', 'Cargo Description', 'textarea', true), self::fld('origin', 'Origin', 'text', true), self::fld('destination', 'Destination', 'text', true))),
+			'insurance_workmen_compensation' => array('Workmen Compensation Insurance', array(self::fld('employee_count', 'Number Of Employees', 'number', true), self::fld('annual_wages', 'Annual Wages (Rs.)', 'number', true), self::fld('business_type', 'Business Type', 'text', true))),
+			'insurance_mobile' => array('Mobile Protection Insurance', array(self::fld('device_brand', 'Device Brand', 'text', true), self::fld('device_model', 'Device Model', 'text', true), self::fld('device_value', 'Device Value (Rs.)', 'number', true), self::fld('purchase_date', 'Purchase Date', 'date', true))),
+			'insurance_consumer_goods' => array('Consumer Goods Protection', array(self::fld('product_type', 'Product Type', 'text', true), self::fld('product_brand', 'Brand', 'text', true), self::fld('product_value', 'Product Value (Rs.)', 'number', true), self::fld('purchase_date', 'Purchase Date', 'date', true))),
+			'insurance_shop' => array('Shop Insurance', array(self::fld('sum_insured', 'Sum Insured (Rs.)', 'number', true), self::fld('shop_address', 'Shop Address', 'textarea', true), self::fld('business_type', 'Business Type', 'text', true))),
+			'insurance_active_360' => array('Active 360 Insurance', self::tpl_insurance()),
+			'insurance_wellness' => array('Wellness Cover', self::tpl_insurance()),
 		);
 		$out = array();
-		foreach ($types as $key => $label) {
-			$out[] = self::svc(array('key' => $key, 'label' => $label, 'fields' => self::tpl_insurance(), 'docs' => array('aadhaar', 'photo'), 'amount' => 0, 'payment_required' => 0));
+		foreach ($types as $key => $service) {
+			$out[] = self::svc(array(
+				'key' => $key, 'label' => $service[0], 'fields' => $service[1], 'docs' => array('aadhaar', 'photo'),
+				'amount' => 0, 'payment_required' => 0, 'workflow_mode' => 'api', 'api_provider_key' => 'turtlefin_insurance',
+			));
 		}
 		return $out;
 	}
